@@ -34,11 +34,15 @@
 
 GIT_PARAMS=--git-dir python-notifier/.git
 
-build: usr/share/pyshared/notifier usr/share/doc/python-notifier
+build: usr/lib/python2.7/dist-packages/notifier usr/lib/python3/dist-packages/notifier usr/share/doc/python-notifier
 
-usr/share/pyshared/notifier:
-	mkdir -p usr/share/pyshared/
-	cp -r python-notifier/notifier usr/share/pyshared/
+usr/lib/python2.7/dist-packages/notifier:
+	mkdir -p usr/lib/python2.7/dist-packages/
+	cp -r python-notifier/notifier usr/lib/python2.7/dist-packages/
+
+usr/lib/python3/dist-packages/notifier:
+	mkdir -p usr/lib/python3/dist-packages/
+	cp -r python-notifier/notifier usr/lib/python3/dist-packages/
 
 usr/share/doc/python-notifier:
 	mkdir -p usr/share/doc/python-notifier
