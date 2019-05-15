@@ -46,6 +46,7 @@ import urllib2
 import httplib
 import ssl
 from base64 import encodestring
+from ipaddr import IPv4Network, IPv4Address
 
 import ruamel.yaml as yaml
 
@@ -409,6 +410,46 @@ class MultiDocker(Docker):
 			volumes.append(cert_volume)
 		return unique(volumes)
 
+	def _get_app_network(self):
+		network = ucr_get(self.app.ucr_ip_key)
+		_logger.debug('Getting network for %s' % self.app)
+		if network:
+			_logger.debug('Found %s' % network)
+			try:
+				network = IPv4Network(network)
+			except ValueError as exc:
+				_logger.warn('Error using the network %s: %s' % (network, exc))
+				return None
+			else:
+				return network
+		docker0_net = IPv4Network(ucr_get('docker/daemon/default/opts/bip', '172.17.42.1/16'))
+		gateway, netmask = docker0_net.exploded.split('/', 1)  # '172.17.42.1', '16'
+		used_docker_networks = []
+		for _app in self.app.get_app_cache_obj().get_all_apps():  # TODO: find container not managed by the App Center?
+			if _app.id == self.app.id:
+				continue
+			ip = ucr_get(_app.ucr_ip_key)
+			try:
+				app_network = IPv4Network(ip)
+			except ValueError as exc:
+				continue
+			else:
+				used_docker_networks.append(app_network)
+		prefixlen_diff = 24 - int(netmask)
+		if prefixlen_diff <= 0:
+			_logger.warn('Cannot get a subnet big enough')  # maybe I could... but currently, I only work with 24-netmasks
+			return None
+		for network in docker0_net.iter_subnets(prefixlen_diff):  # 172.17.0.1/24, 172.17.1.1/24, ..., 172.17.255.1/24
+			_logger.debug('Testing %s' % network)
+			if IPv4Address(gateway) in network:
+				_logger.debug('Refusing due to "main subnet"')
+				continue
+			if any(app_network.overlaps(network) for app_network in used_docker_networks):
+				_logger.debug('Refusing due to range already used')
+				continue
+			return network
+		_logger.warn('Cannot find any viable subnet')
+
 	def _setup_yml(self, recreate, env=None):
 		env = env or {}
 		yml_file = self.app.get_compose_file('docker-compose.yml')
@@ -437,6 +478,19 @@ class MultiDocker(Docker):
 		container_def['volumes'] = volumes
 		exposed_ports = {}
 		used_ports = {}
+		ip_addresses = None
+		if 'networks' not in content:
+			network = self._get_app_network()
+			if network:
+				content['networks'] = {'appcenter_net':
+					{'ipam': {
+								'driver': 'default',
+								'config': [{'subnet': network.compressed}]
+						}
+					}
+				}
+				ucr_save({self.app.ucr_ip_key: str(network)})
+				ip_addresses = network.iterhosts()  # iterator!
 		for service_name, service in content['services'].iteritems():
 			exposed_ports[service_name] = (int(port) for port in service.get('expose', []))
 			used_ports[service_name] = {}
@@ -456,6 +510,8 @@ class MultiDocker(Docker):
 					if k in service_env:
 						service_env[k] = env.pop(k)
 				service['environment'] = service_env
+			if ip_addresses and not service.get('networks'):
+				service['networks'] = {'appcenter_net': {'ipv4_address': str(ip_addresses.next())}}
 		if 'environment' not in container_def:
 			container_def['environment'] = {}
 		container_def['environment'].update(env)
