@@ -33,7 +33,7 @@ ucs-tools (1.2.0-1) unstable; urgency=low
 
   * fixed traceback in ucslint while opening files
 
- -- Sönke Schwardt <schwardt@univention.de>  Mon, 25 Aug 2008 16:14:55 +0200
+ -- Sönke Schwardt <schwardt@univention.de>  Mon, 20 Oct 2008 16:14:55 +0200
 
 ucs-tools (1.1.9-2) unstable; urgency=low
 
