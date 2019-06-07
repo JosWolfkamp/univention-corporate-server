@@ -44,7 +44,6 @@ export PYTHONPATH="$PWD:$PYTHONPATH"
 BINPATH="$PWD/bin/ucslint"
 UCSLINTPATH=(
 	-p "$PWD/ucslint"
-	-p "$PWD/ucslint-univention"
 	)
 
 for dir in testframework/$@*
