@@ -14,7 +14,7 @@ univention-base-files (8.0.0-3) unstable; urgency=medium
 
   * Bug #35208: added ldap server option to univention-policy-update-config-registry.py
 
- -- Jannik Ahlers <ahlers@univention.de>  Wed, 13 Mar 2019 10:27:36 +0100
+ -- Jannik Ahlers <ahlers@univention.de>  Thu, 14 Mar 2019 10:57:56 +0100
 
 univention-base-files (8.0.0-2) unstable; urgency=medium
 
