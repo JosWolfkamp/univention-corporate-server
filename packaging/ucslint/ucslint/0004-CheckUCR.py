@@ -421,6 +421,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 					multifiles = {}  # { MULTIFILENAME ==> OBJ }
 					subfiles = {}    # { MULTIFILENAME ==> [ OBJ, OBJ, ... ] }
 					files = []       # [ OBJ, OBJ, ... ]
+					unique = set()  # type: Set[Union[str, Tuple[str, str]]]
 
 					for entry in self.read_ucr(fn):
 						self.debug('Entry: %s' % entry)
@@ -438,6 +439,11 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 									self.addmsg('0004-4', 'file contains multifile entry with %d "Multifile:" line' % (len(mfile),), fn)
 								else:
 									multifiles[mfile[0]] = entry
+								for conffn in mfile:
+									if conffn in unique:
+										self.addmsg('0004-60', 'Duplicate entry: Multifile %s' % (conffn,), fn)
+									else:
+										unique.add(conffn)
 
 								user = entry.get('User', [])
 								if len(user) > 1:
@@ -496,6 +502,14 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 									subfiles.setdefault(_, []).append(entry)
 									all_definitions.setdefault(_, set()).add(fn)
 
+								for conffn in sfile:
+									for _ in mfile:
+										key = (_, conffn)
+										if key in unique:
+											self.addmsg('0004-60', 'Duplicate entry: Multifile %s, Subfile %s' % key, fn)
+										else:
+											unique.add(key)
+
 								pre = entry.get('Preinst', [])
 								if len(pre) > 0:
 									self.addmsg('0004-19', 'file contains subfile entry with %d "Preinst:" lines' % (len(pre),), fn)
@@ -516,6 +530,10 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 								for conffn in sfile:
 									objlist.setdefault(conffn, []).append(entry)
 									all_definitions.setdefault(conffn, set()).add(fn)
+									if conffn in unique:
+										self.addmsg('0004-60', 'Duplicate entry: File %s' % (conffn,), fn)
+									else:
+										unique.add(conffn)
 								files.append(entry)
 
 								user = entry.get('User', [])
@@ -561,6 +579,10 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 									self.addmsg('0004-38', 'UCR .info-file contains entry of "Type: module" with %d "Module:" lines' % (len(module),), fn)
 								for conffn in module:
 									objlist.setdefault(conffn, []).append(entry)
+									if conffn in unique:
+										self.addmsg('0004-60', 'Duplicate entry: Module %s' % (conffn,), fn)
+									else:
+										unique.add(conffn)
 								all_module |= set(module)
 
 								for key in set(entry.keys()) - set(('Type', 'Module', 'Variables')):
@@ -572,6 +594,10 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 									self.addmsg('0004-39', 'UCR .info-file contains entry of "Type: script" with %d "Script:" lines' % (len(script),), fn)
 								for conffn in script:
 									objlist.setdefault(conffn, []).append(entry)
+									if conffn in unique:
+										self.addmsg('0004-60', 'Duplicate entry: Script %s' % (conffn,), fn)
+									else:
+										unique.add(conffn)
 								all_script |= set(script)
 
 								for key in set(entry.keys()) - set(('Type', 'Script', 'Variables')):
