@@ -91,5 +91,5 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 					self.tester.open(fn)
 					msglist = self.tester.runTests()
 					self.msg.extend(msglist)
-				except (IOError, OSError):
+				except EnvironmentError:
 					continue

@@ -95,7 +95,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		for fn in py_files:
 			try:
 				content = open(fn, 'r').read()
-			except (OSError, IOError):
+			except EnvironmentError:
 				self.addmsg('0008-2', 'failed to open and read file', filename=fn)
 				continue
 			self.debug('testing %s' % fn)
@@ -115,7 +115,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		for fn in po_files:
 			try:
 				content = open(fn, 'r').read()
-			except (OSError, IOError):
+			except EnvironmentError:
 				self.addmsg('0008-2', 'failed to open and read file', fn)
 				continue
 

@@ -70,7 +70,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		"""Check a single join script."""
 		try:
 			content = open(filename, 'r').read()
-		except (OSError, IOError):
+		except EnvironmentError:
 			self.addmsg('0001-9', 'failed to open and read file', filename)
 			return
 
