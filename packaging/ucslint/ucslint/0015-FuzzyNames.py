@@ -158,7 +158,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 	def postinit(self, path):
 		""" checks to be run before real check or to create precalculated data for several runs. Only called once! """
 
-	RE_WHITEWORD = re.compile('|'.join("""
+	RE_WHITEWORD = re.compile(r'|'.join(r"""
 		[0-9][0-9]univention
 		punivention
 		fBunivention
@@ -173,7 +173,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		univention_
 	""".split()))
 
-	RE_WHITELINE = re.compile('|'.join(r"""
+	RE_WHITELINE = re.compile(r'|'.join(r"""
 		\\[tnr]univention
 		-.univention
 		[SK]?[0-9][0-9]univention

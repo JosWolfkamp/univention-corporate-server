@@ -49,6 +49,7 @@ RE_LOCAL = re.compile(
     ''',
     re.VERBOSE
 )
+RE_HASH_BANG = re.compile(r'^#![ \t]*/bin/(?:d?a)?sh')
 
 
 class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
@@ -71,7 +72,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		for fn in uub.FilteredDirWalkGenerator(
 			path,
 			ignore_suffixes=['.po'],
-			reHashBang=re.compile('^#![ \t]*/bin/(?:d?a)?sh')
+			reHashBang=RE_HASH_BANG
 		):
 			self.debug('Testing file %s' % fn)
 			self.check_bashism(fn)

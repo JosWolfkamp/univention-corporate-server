@@ -40,30 +40,33 @@ try:
 except ImportError:
 	import ucslint.base as uub
 
+RE_PY2 = re.compile(r'\s*dh .*--with.*python2')
+RE_PY3 = re.compile(r'\s*dh .*--with.*python3')
+
 
 class UniventionPackageCheck(uub.UniventionPackageCheckBase):
 
 	"""Python specific flake8 checks."""
 
-	PYTHON_HASH_BANG = re.compile('^#!.*[ /]python[0-9.]*')
+	PYTHON_HASH_BANG = re.compile(r'^#!.*[ /]python[0-9.]*')
 
 	IGNORED_FILES = [
-		re.compile('conffiles/[^/]+/'),  # UCR templates with markers contain syntax errors
-		re.compile('python-notifier/'),  # external code
-		re.compile('univention-novnc/'),  # external code
-		re.compile('univention-ldb-modules/'),  # external code
-		re.compile('univention/pyDes.py'),  # external code
-		re.compile('ucslint/testframework/'),  # don't care about tests for ucslint
-		re.compile('services/univention-printserver/modules/univention/management/console/handlers/cups'),  # UCS 2.4 code
-		re.compile('univention-directory-manager-modules/test/'),  # unrelevant, should be removed imho
+		re.compile(r'conffiles/[^/]+/'),  # UCR templates with markers contain syntax errors
+		re.compile(r'python-notifier/'),  # external code
+		re.compile(r'univention-novnc/'),  # external code
+		re.compile(r'univention-ldb-modules/'),  # external code
+		re.compile(r'univention/pyDes.py'),  # external code
+		re.compile(r'ucslint/testframework/'),  # don't care about tests for ucslint
+		re.compile(r'services/univention-printserver/modules/univention/management/console/handlers/cups'),  # UCS 2.4 code
+		re.compile(r'univention-directory-manager-modules/test/'),  # unrelevant, should be removed imho
 	]
 
 	IGNORE = {
-		re.compile('(^|/)__init__.py$'): 'F403',  # some package provide all members of subpackages
-		re.compile('test/ucs-test/tests\/.*'): 'E266',  # UCS-Test headers begin with "## foo: bar"
-		re.compile('ucs-test-ucsschool'): 'E266',
-		re.compile('(^|/)syntax.d/.*'): 'E821',  # some variables are undefined, as these files are mixins
-		re.compile('univention-directory-manager-modules/'): 'W601',  # UDM allows has_key() Bug #W601
+		re.compile(r'(^|/)__init__.py$'): 'F403',  # some package provide all members of subpackages
+		re.compile(r'test/ucs-test/tests\/.*'): 'E266',  # UCS-Test headers begin with "## foo: bar"
+		re.compile(r'ucs-test-ucsschool'): 'E266',
+		re.compile(r'(^|/)syntax.d/.*'): 'E821',  # some variables are undefined, as these files are mixins
+		re.compile(r'univention-directory-manager-modules/'): 'W601',  # UDM allows has_key() Bug #W601
 	}
 
 	DEFAULT_IGNORE = os.environ.get('UCSLINT_FLAKE8_IGNORE', 'N,B,E501,W191,E265,E266')
@@ -77,9 +80,9 @@ class UniventionPackageCheck(uub.UniventionPackageCheckBase):
 		try:
 			with open('debian/rules') as fd:
 				content = fd.read()
-			if not re.search('\s*dh .*--with.*python2', content):
+			if not RE_PY2.search(content):
 				self.python_versions.remove('python2.7')
-			if not re.search('\s*dh .*--with.*python3', content):
+			if not RE_PY3.search(content):
 				self.python_versions.remove('python3.5')
 		except EnvironmentError:
 			pass
