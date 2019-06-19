@@ -15,7 +15,7 @@ Options:
   --color    Colorize output
   --         Separate options from following arguments
 __USAGE__
-    exit ${1:-0}
+    exit "${1:-0}"
 }
 
 while [ $# -ge 1 ]
@@ -34,8 +34,8 @@ do
     shift
 done
 
-tmpdir=$(mktemp -d)
-trap "rm -rf '$tmpdir'" EXIT
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
 tmpresult="$tmpdir/result"
 tmpdiff="$tmpdir/diff"
 tmperr="$tmpdir/err"
@@ -43,19 +43,31 @@ tmperr="$tmpdir/err"
 export PYTHONPATH="$PWD:$PYTHONPATH"
 BINPATH="$PWD/bin/ucslint"
 UCSLINTPATH=(
-	-p "$PWD/ucslint"
-	)
+    -p "$PWD/ucslint"
+)
 
-for dir in testframework/$@*
+match () {
+    local arg dirname="$1"
+    shift
+    [ $# -eq 0 ] && return 0
+    for arg in "$@"
+    do
+        [ "${dirname#$arg}" = "$dirname" ] || return 0
+    done
+    return 1
+}
+
+for dir in testframework/*
 do
-    if [ -d "$dir" ]
-    then
+    [ -d "$dir" ] || continue
+    DIRNAME=$(basename "$dir")
+    match "$DIRNAME" "$@" || continue
+
         [ -z "$quiet" ] && echo -n "Testing $dir "
 
-        DIRNAME=$(basename "$dir")
         MODULE="${DIRNAME:0:4}"
 
-        ( cd "$dir" && "$BINPATH" "${UCSLINTPATH[@]}" -m "$MODULE" >"$tmpresult" 2>"$tmperr" )
+        ( cd "./$dir" && "$BINPATH" "${UCSLINTPATH[@]}" -m "$MODULE" >"$tmpresult" 2>"$tmperr" )
         ret=$?
         ./ucslint-sort-output.py "$tmpresult" >"${dir}.test"
 
@@ -75,7 +87,6 @@ do
                 cp "${dir}.test" "${dir}.correct"
             fi
         fi
-    fi
 done
 
-exit $RETVAL
+exit "$RETVAL"
