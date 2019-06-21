@@ -33,6 +33,7 @@ except ImportError:
 	import ucslint.base as uub
 import re
 import os
+from codecs import open
 
 RE_DEP = re.compile(
 	r'''
@@ -83,7 +84,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 
 		fn_changelog = os.path.join(path, 'debian', 'changelog')
 		try:
-			content_changelog = open(fn_changelog, 'r').read(1024)
+			content_changelog = open(fn_changelog, 'r', 'utf-8').read(1024)
 		except IOError:
 			self.addmsg('0011-1', 'failed to open and read file', filename=fn_changelog)
 			return
@@ -101,7 +102,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		compat_version = 0
 		fn_compat = os.path.join(path, 'debian', 'compat')
 		try:
-			content_compat = open(fn_compat, 'r').read()
+			content_compat = open(fn_compat, 'r', 'utf-8').read()
 			compat_version = int(content_compat)
 		except EnvironmentError:
 			# self.addmsg('0011-1', 'failed to open and read file', filename=fn_compat)

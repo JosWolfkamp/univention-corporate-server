@@ -33,13 +33,14 @@ try:
 except ImportError:
 	import ucslint.base as uub
 import re
+from codecs import open
 
 RE_HASHBANG = re.compile(r'#!\s*/bin/(?:ba|da|z|c)?sh')
 
 
 def containsHashBang(path):
 	try:
-		fp = open(path, 'r')
+		fp = open(path, 'r', 'utf-8', 'replace')
 	except IOError:
 		return False
 	try:

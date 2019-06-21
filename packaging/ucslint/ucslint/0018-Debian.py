@@ -34,6 +34,7 @@ except ImportError:
 	import ucslint.base as uub
 from os import listdir
 from os.path import join, splitext
+from codecs import open
 
 
 class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
@@ -56,7 +57,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 				continue
 
 			script_path = join(path, 'debian', filename)
-			with open(script_path, 'r') as script_file:
+			with open(script_path, 'r', 'utf-8') as script_file:
 				for nr, line in enumerate(script_file, start=1):
 					if not line.startswith('#'):
 						break

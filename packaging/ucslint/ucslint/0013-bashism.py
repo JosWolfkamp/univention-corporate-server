@@ -33,6 +33,7 @@ except ImportError:
 	import ucslint.base as uub
 import re
 import subprocess
+from codecs import open
 
 RE_BASHISM = re.compile(r'^.*?\s+line\s+(\d+)\s+[(](.*?)[)][:]\n([^\n]+)$')
 RE_LOCAL = re.compile(
@@ -85,7 +86,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 			# 1 = bashism found
 			# 0 = everything is posix compliant
 			if p.returncode == 1:
-				for item in stderr.split('possible bashism in '):
+				for item in stderr.decode('utf-8', 'replace').split('possible bashism in '):
 					item = item.strip()
 					if not item:
 						continue
@@ -102,7 +103,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 					self.addmsg('0013-2', 'possible bashism (%s):\n%s' % (msg, code), filename=fn, line=line)
 
 	def check_unquoted_local(self, fn):
-		with open(fn, 'r') as fd:
+		with open(fn, 'r', 'utf-8', 'replace') as fd:
 			for nr, line in enumerate(fd, start=1):
 				line = line.strip()
 				match = RE_LOCAL.search(line)

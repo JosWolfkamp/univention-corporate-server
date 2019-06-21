@@ -32,6 +32,7 @@ try:
 except ImportError:
 	import ucslint.base as uub
 import os
+from codecs import open
 
 
 class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
@@ -80,7 +81,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		#
 		for fn, checks in fnlist_scripts.items():
 			try:
-				content = open(fn, 'r').read()
+				content = open(fn, 'r', 'utf-8').read()
 			except EnvironmentError:
 				content = ''
 

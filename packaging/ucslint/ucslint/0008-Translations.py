@@ -32,6 +32,7 @@ try:
 except ImportError:
 	import ucslint.base as uub
 import re
+from codecs import open
 
 # 1) check if translation strings are correct; detect something like  _('foo %s bar' % var)  ==> _('foo %s bar') % var
 # 2) check if all translation strings are translated in de.po file
@@ -94,7 +95,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		"""Check Python files."""
 		for fn in py_files:
 			try:
-				content = open(fn, 'r').read()
+				content = open(fn, 'r', 'utf-8').read()
 			except EnvironmentError:
 				self.addmsg('0008-2', 'failed to open and read file', filename=fn)
 				continue
@@ -114,7 +115,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		"""Check Portable Object files."""
 		for fn in po_files:
 			try:
-				content = open(fn, 'r').read()
+				content = open(fn, 'r', 'utf-8', 'replace').read()
 			except EnvironmentError:
 				self.addmsg('0008-2', 'failed to open and read file', fn)
 				continue

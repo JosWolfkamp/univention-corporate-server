@@ -28,8 +28,8 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
 import os
+from codecs import open
 try:
 	from typing import Any, Dict, Iterable, Iterator, List, Pattern, Optional, Tuple  # noqa F401
 except ImportError:
@@ -259,7 +259,7 @@ class ParserDebianControl(object):
 		self.binary_sections = []  # type: List[DebianControlEntry]
 
 		try:
-			content = open(self.filename, 'r').read()
+			content = open(self.filename, 'r', 'utf-8').read()
 		except EnvironmentError:
 			raise FailedToReadFile(self.filename)
 
@@ -342,7 +342,7 @@ class UPCFileTester(object):
 		# hold raw file in memory (self.raw) and a unwrapped version (self.lines)
 		# the raw version is required to calculate the correct position.
 		# tests will be done with unwrapped version.
-		self.raw = open(filename, 'r').read(self.maxsize)
+		self.raw = open(filename, 'r', 'utf-8', 'replace').read(self.maxsize)
 		lines = self.raw.replace('\\\n', '  ').replace('\\\r\n', '   ')
 		self.lines = lines.splitlines()
 
@@ -537,8 +537,8 @@ class FilteredDirWalkGenerator(object):
 
 				if self.reHashBang:
 					try:
-						content = open(fn, 'r').read(self.readSize)
-					except EnvironmentError:
+						content = open(fn, 'r', 'utf-8', 'replace').read(self.readSize)
+					except (EnvironmentError, UnicodeDecodeError):
 						continue
 					if not self.reHashBang.search(content):
 						continue

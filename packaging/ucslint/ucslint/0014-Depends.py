@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # vim:set fileencoding=utf-8 sw=4 ts=4 et:
 #
@@ -39,6 +39,7 @@ try:
 except ImportError:
 	import ucslint.base as uub
 from apt import Cache
+from codecs import open
 
 
 class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
@@ -95,7 +96,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		need = set()
 		self.debug('Reading %s' % (fn,))
 		try:
-			f = open(fn, 'r')
+			f = open(fn, 'r', 'utf-8')
 		except EnvironmentError:
 			self.addmsg('0014-0', 'failed to open and read file', filename=fn)
 			return need
@@ -192,7 +193,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		try:
 			fn = join(self.path, 'debian', '%s.univention-config-registry' % (pkg,))
 			if exists(fn):
-				f = open(fn, 'r')
+				f = open(fn, 'r', 'utf-8')
 				try:
 					for l in f:
 						m = UniventionPackageCheck.RE_INIT.match(l)

@@ -32,6 +32,7 @@ try:
 except ImportError:
 	import ucslint.base as uub
 from itertools import chain
+from codecs import open
 import re
 try:
 	from typing import Any, Dict, Iterator, List  # noqa F401
@@ -57,10 +58,10 @@ def levenshtein(word, distance=1, subst='.'):
 		return
 
 	l = len(word)
-	m_sub = ('%s%s%s' % (word[0:i], subst, word[i + 1:]) for i in xrange(l))
-	m_ins = ('%s%s%s' % (word[0:i], subst, word[i:]) for i in xrange(l + 1))
-	m_del = ('%s%s' % (word[0:i], word[1 + i:]) for i in xrange(l))
-	m_swp = ('%s%s%s%s%s' % (word[0:i], word[j], word[i + 1:j], word[i], word[j + 1:]) for j in xrange(l) for i in xrange(j))
+	m_sub = ('%s%s%s' % (word[0:i], subst, word[i + 1:]) for i in range(l))
+	m_ins = ('%s%s%s' % (word[0:i], subst, word[i:]) for i in range(l + 1))
+	m_del = ('%s%s' % (word[0:i], word[1 + i:]) for i in range(l))
+	m_swp = ('%s%s%s%s%s' % (word[0:i], word[j], word[i + 1:j], word[i], word[j + 1:]) for j in range(l) for i in range(j))
 	for modified in chain(m_sub, m_ins, m_del, m_swp):
 		for result in levenshtein(modified, distance - 1):
 			yield result
@@ -220,7 +221,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		super(UniventionPackageCheck, self).check(path)
 
 		for fn in uub.FilteredDirWalkGenerator(path, ignore_suffixes=self.BINARY_SUFFIXES):
-			with open(fn, 'r') as fd:
+			with open(fn, 'r', 'utf-8', 'replace') as fd:
 				for lnr, line in enumerate(fd, start=1):
 					origline = line
 					if UniventionPackageCheck.RE_WHITELINE.match(line):

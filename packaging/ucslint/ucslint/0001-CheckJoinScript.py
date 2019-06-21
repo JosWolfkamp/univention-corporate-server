@@ -34,6 +34,7 @@ except ImportError:
 	import ucslint.base as uub
 import re
 import os
+from codecs import open
 
 
 class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
@@ -69,7 +70,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 	def check_join_script(self, filename):
 		"""Check a single join script."""
 		try:
-			content = open(filename, 'r').read()
+			content = open(filename, 'r', 'utf-8').read()
 		except EnvironmentError:
 			self.addmsg('0001-9', 'failed to open and read file', filename)
 			return
@@ -181,7 +182,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 
 		# Look for dh-umc-modules-install
 		try:
-			content = open(fn_rules, 'r').read()
+			content = open(fn_rules, 'r', 'utf-8').read()
 		except IOError:
 			self.addmsg('0001-9', 'failed to open and read file', fn_rules)
 		else:
@@ -213,7 +214,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 
 		for fn in fnlist:
 			try:
-				content = open(fn, 'r').read()
+				content = open(fn, 'r', 'utf-8').read()
 			except IOError:
 				self.addmsg('0001-9', 'failed to open and read file', fn)
 
@@ -236,7 +237,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 				fn = os.path.join(path, 'debian', f)
 				self.debug('loading %s' % (fn))
 				try:
-					content = open(fn, 'r').read()
+					content = open(fn, 'r', 'utf-8').read()
 				except IOError:
 					self.addmsg('0001-9', 'failed to open and read file', fn)
 					continue

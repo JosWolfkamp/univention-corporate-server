@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright 2016-2019 Univention GmbH
@@ -33,6 +33,7 @@ import re
 import os
 import sys
 import subprocess
+from codecs import open
 from argparse import ArgumentParser
 
 try:
@@ -76,14 +77,14 @@ class UniventionPackageCheck(uub.UniventionPackageCheckBase):
 
 	def __init__(self, *args, **kwargs):
 		self.show_statistics = kwargs.pop('show_statistics', False)
-		self.python_versions = ['python2.7', 'python3.5']
+		self.python_versions = ['python2', 'python3']
 		try:
-			with open('debian/rules') as fd:
+			with open('debian/rules', 'r', 'utf-8', 'replace') as fd:
 				content = fd.read()
 			if not RE_PY2.search(content):
-				self.python_versions.remove('python2.7')
+				self.python_versions.remove('python2')
 			if not RE_PY3.search(content):
-				self.python_versions.remove('python3.5')
+				self.python_versions.remove('python3')
 		except EnvironmentError:
 			pass
 		super(UniventionPackageCheck, self).__init__(*args, **kwargs)
@@ -326,7 +327,9 @@ class UniventionPackageCheck(uub.UniventionPackageCheckBase):
 				cmd.extend(pathes)
 
 				process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-				errors.extend(process.communicate()[0].splitlines())
+				stdout, stderr = process.communicate()
+				text = stdout.decode('utf-8', 'replace')
+				errors.extend(text.splitlines())
 
 		self.format_errors(errors)
 
@@ -348,15 +351,15 @@ class UniventionPackageCheck(uub.UniventionPackageCheckBase):
 		if self.DEFAULT_SELECT or self.show_statistics:
 			return {
 				self.DEFAULT_IGNORE: files,
-			}.iteritems()
+			}.items()
 
 		ignored = {}
 		for path in files:
-			ignore = ','.join(v for k, v in self.IGNORE.iteritems() if k.search(os.path.abspath(path)))
+			ignore = ','.join(v for k, v in self.IGNORE.items() if k.search(os.path.abspath(path)))
 			ignore = '%s,%s' % (self.DEFAULT_IGNORE, ignore)
 			ignored.setdefault(ignore.rstrip(','), []).append(path)
 
-		return ignored.iteritems()
+		return ignored.items()
 
 	def format_errors(self, errors):
 		for i, line in enumerate(errors, 1):

@@ -36,11 +36,12 @@ except ImportError:
 import re
 import os
 import sys
+from codecs import open
 try:
 	from configparser import RawConfigParser, ParsingError, MissingSectionHeaderError, DuplicateSectionError, DuplicateOptionError
 	PY3CFG = True
 except ImportError:
-	from ConfigParser import RawConfigParser, ParsingError, MissingSectionHeaderError, DuplicateSectionError, Error as DuplicateOptionError
+	from ConfigParser import RawConfigParser, ParsingError, MissingSectionHeaderError, DuplicateSectionError, Error as DuplicateOptionError  # type: ignore
 	PY3CFG = False
 try:
 	from typing import Dict, Iterator, List, Set, Tuple, Union  # noqa F401
@@ -67,7 +68,7 @@ except ImportError:
 class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 	RE_PYTHON = re.compile(r'@!@')
 	RE_VAR = re.compile(r'@%@')
-	UCR_VALID_SPECIAL_CHARACTERS = '/_-'
+	RE_VALID_UCR = re.compile(r'^(?:[-/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz]|%[sd])+$')
 	RE_UCR_HEADER_FILE = re.compile(r'#[\t ]+(/etc/univention/templates/files(/[^ \n\t\r]*?))[ \n\t\r]')
 	RE_UICR = re.compile(r'[\n\t ]univention-install-(baseconfig|config-registry)[\n\t ]')
 
@@ -139,18 +140,26 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 	def postinit(self, path):
 		""" checks to be run before real check or to create precalculated data for several runs. Only called once! """
 
-	def check_invalid_variable_name(self, var):
+	@classmethod
+	def check_invalid_variable_name(cls, var):
 		"""
 		Returns True if given variable name contains invalid characters
+
+		:param var: variable name to check.
+		:returns: `False` if the name is valid, `True` otherwise.
+
+		>>> UniventionPackageCheck.check_invalid_variable_name('')
+		True
+		>>> UniventionPackageCheck.check_invalid_variable_name('var')
+		False
+		>>> UniventionPackageCheck.check_invalid_variable_name('sub-section/var_name')
+		False
+		>>> UniventionPackageCheck.check_invalid_variable_name('ä')
+		True
+		>>> UniventionPackageCheck.check_invalid_variable_name('%x')
+		True
 		"""
-		for i, c in enumerate(var):
-			if not c.isalpha() and not c.isdigit() and c not in self.UCR_VALID_SPECIAL_CHARACTERS:
-				if c == '%' and (i < len(var) - 1):
-					if not var[i + 1] in ['d', 's']:
-						return True
-				else:
-					return True
-		return False
+		return cls.RE_VALID_UCR.match(var) is None
 
 	RE_UCR_VARLIST = [
 		re.compile(r"""(?:baseConfig|configRegistry)\s*\[\s*['"]([^'"]+)['"]\s*\]"""),
@@ -192,7 +201,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 				checks['pythonic'] = True
 
 			try:
-				content = open(fn, 'r').read()
+				content = open(fn, 'r', 'utf-8', 'replace').read()
 			except EnvironmentError:
 				self.addmsg('0004-27', 'cannot open/read file', fn)
 				continue
@@ -271,7 +280,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		self.debug('Reading %s' % fn)
 		try:
 			entry = {}  # type: Dict[str, List[str]]
-			with open(fn, 'r') as stream:
+			with open(fn, 'r', 'utf-8', 'replace') as stream:
 				for lnr, line in enumerate(stream, start=1):
 					line = line.strip()
 					if not line and entry:
@@ -313,7 +322,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 				sectname, = ex.args
 				self.addmsg('0004-60', 'Duplicate section entry: %s' % (sectname,), fn)
 		except MissingSectionHeaderError as ex:
-			self.addmsg('0004-61', 'Invalid entry', ex.filename, ex.lineno)
+			self.addmsg('0004-61', 'Invalid entry', ex.filename, ex.lineno)  # type: ignore
 		except DuplicateOptionError:
 			self.addmsg('0004-61', 'Invalid entry', fn)
 		except ParsingError:
@@ -330,10 +339,10 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 			return cfg
 
 		try:
-			with open(fn, 'r') as stream:
+			with open(fn, 'r', 'utf-8', 'replace') as stream:
 				sections = set()  # type: Set[str]
 				for lnr, line in enumerate(stream, start=1):
-					m = cfg.SECTCRE.match(line)
+					m = cfg.SECTCRE.match(line)  # type: ignore
 					if m:
 						sectname = m.group('header')
 						if sectname in sections:
@@ -369,7 +378,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 			# read debian/rules
 			fn_rules = os.path.join(path, 'debian', 'rules')
 			try:
-				rules_content = open(fn_rules, 'r').read()
+				rules_content = open(fn_rules, 'r', 'utf-8', 'replace').read()
 			except EnvironmentError:
 				self.addmsg('0004-2', 'file is missing', fn_rules)
 				rules_content = ''
@@ -793,7 +802,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		count_python = 0
 		count_var = 0
 		try:
-			f = open(fn, 'r')
+			f = open(fn, 'r', 'utf-8', 'replace')
 		except EnvironmentError:
 			# self.addmsg('0004-27', 'cannot open/read file', fn)
 			return
@@ -810,3 +819,8 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 			self.addmsg('0004-31', 'odd number of @!@ markers', fn)
 		if count_var % 2:
 			self.addmsg('0004-32', 'odd number of @%@ markers', fn)
+
+
+if __name__ == '__main__':
+	import doctest
+	doctest.testmod()
