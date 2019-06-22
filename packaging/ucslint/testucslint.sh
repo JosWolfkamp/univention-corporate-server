@@ -40,11 +40,7 @@ tmpresult="$tmpdir/result"
 tmpdiff="$tmpdir/diff"
 tmperr="$tmpdir/err"
 
-export PYTHONPATH="$PWD:$PYTHONPATH"
-BINPATH="$PWD/bin/ucslint"
-UCSLINTPATH=(
-    -p "$PWD/ucslint"
-)
+BINPATH="$PWD/ucslint"
 
 match () {
     local arg dirname="$1"
@@ -67,7 +63,7 @@ do
 
         MODULE="${DIRNAME:0:4}"
 
-        ( cd "./$dir" && "$BINPATH" "${UCSLINTPATH[@]}" -m "$MODULE" >"$tmpresult" 2>"$tmperr" )
+        ( cd "./$dir" && "$BINPATH" -m "$MODULE" >"$tmpresult" 2>"$tmperr" )
         ret=$?
         ./ucslint-sort-output.py "$tmpresult" >"${dir}.test"
 

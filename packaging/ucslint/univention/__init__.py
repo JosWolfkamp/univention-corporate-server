@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008-2019 Univention GmbH
@@ -27,3 +26,4 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
+__path__ = __import__('pkgutil').extend_path(__path__, __name__)
