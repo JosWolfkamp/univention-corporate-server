@@ -1,9 +1,10 @@
-#!/usr/bin/make -f
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 #
-# Univention ucslint
-#  rules file for the debian package
+# Univention Debug
+#  setup.py
 #
-# Copyright 2008-2019 Univention GmbH
+# Copyright 2019 Univention GmbH
 #
 # http://www.univention.de/
 #
@@ -29,14 +30,33 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
-export LC_ALL=C.UTF-8
+import io
+from setuptools import setup
+from email.utils import parseaddr
+from debian.changelog import Changelog
+from debian.deb822 import Deb822
 
-%:
-	dh $@ --with python3 --buildsystem=pybuild
+dch = Changelog(io.open('debian/changelog', 'r', encoding='utf-8'))
+dsc = Deb822(io.open('debian/control', 'r', encoding='utf-8'))
+realname, email_address = parseaddr(dsc['Maintainer'])
 
-override_dh_install:
-	dh_install --package=ucslint-univention
-	dh_install --remaining --exclude=-univention-
+setup(
+	package_dir={'': '.'},
+	packages=['univention.ucslint'],
+	description='Check packaging for UCS',
+	install_requires=[
+		"flake8",
+		"python-apt",
+		"python-debian",
+	],
+	scripts=['ucslint', 'ucspep8'],
 
-override_dh_auto_test:
-	./testucslint.sh
+
+	url='https://www.univention.de/',
+	license='GNU Affero General Public License v3',
+
+	name=dch.package,
+	version=dch.version.full_version,
+	maintainer=realname,
+	maintainer_email=email_address,
+)
