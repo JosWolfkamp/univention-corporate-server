@@ -48,12 +48,12 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 
 	def getMsgIds(self):
 		return {
-			'0007-1': [uub.RESULT_WARN, 'failed to open file'],
-			'0007-2': [uub.RESULT_WARN, 'changelog does not contain ticket/bug/issue number'],
-			'0007-3': [uub.RESULT_ERROR, 'debian/changelog entries are not strict-monotonically increasing by time'],
-			'0007-4': [uub.RESULT_ERROR, 'debian/changelog entries are not strict-monotonically increasing by version'],
-			'0007-5': [uub.RESULT_WARN, 'old debian/changelog entries are not strict-monotonically increasing by time'],
-			'0007-6': [uub.RESULT_WARN, 'old debian/changelog entries are not strict-monotonically increasing by version'],
+			'0007-1': (uub.RESULT_WARN, 'failed to open file'),
+			'0007-2': (uub.RESULT_WARN, 'changelog does not contain ticket/bug/issue number'),
+			'0007-3': (uub.RESULT_ERROR, 'debian/changelog entries are not strict-monotonically increasing by time'),
+			'0007-4': (uub.RESULT_ERROR, 'debian/changelog entries are not strict-monotonically increasing by version'),
+			'0007-5': (uub.RESULT_WARN, 'old debian/changelog entries are not strict-monotonically increasing by time'),
+			'0007-6': (uub.RESULT_WARN, 'old debian/changelog entries are not strict-monotonically increasing by version'),
 		}
 
 	def postinit(self, path):
