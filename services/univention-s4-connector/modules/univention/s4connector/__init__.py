@@ -1386,11 +1386,7 @@ class ucs:
 			ud.debug(ud.LDAP, ud.PROCESS, "Delete of %s was disabled in mapping" % object['dn'])
 			return True
 
-		if object['attributes'].get('objectGUID'):
-			guid_unicode = object['attributes'].get('objectGUID')[0]
-			objectGUID = guid_unicode.encode('ISO-8859-1')  # to compensate for __object_from_element
-		else:
-			objectGUID = None
+		objectGUID = object['attributes'].get('objectGUID', [None])[0]
 		entryUUID = self._get_entryUUID(object['dn'])
 
 		if property_type in ['ou', 'container']:
@@ -1509,8 +1505,7 @@ class ucs:
 					return False
 
 		try:
-			guid_unicode = original_object.get('attributes').get('objectGUID')[0]
-			guid_blob = guid_unicode.encode('ISO-8859-1')  # to compensate for __object_from_element
+			guid_blob = original_object.get('attributes').get('objectGUID')[0]
 			guid = str(ndr_unpack(misc.GUID, guid_blob))
 
 			object['changed_attributes'] = []

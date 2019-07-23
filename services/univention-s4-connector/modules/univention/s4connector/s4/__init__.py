@@ -52,7 +52,10 @@ from samba.dcerpc import security
 from samba.ndr import ndr_pack, ndr_unpack
 from samba.dcerpc import misc
 
-DECODE_IGNORELIST = ['objectSid', 'objectGUID', 'repsFrom', 'replUpToDateVector', 'ipsecData', 'logonHours', 'userCertificate', 'dNSProperty', 'dnsRecord']
+DECODE_IGNORELIST = ['objectSid', 'objectGUID', 'repsFrom', 'replUpToDateVector', 'ipsecData', 'logonHours', 'userCertificate', 'dNSProperty', 'jpegPhoto']
+## TODO: Compare with:
+## 1) function encode_s4_object
+## 2) function open_s4
 
 LDAP_SERVER_SHOW_DELETED_OID = "1.2.840.113556.1.4.417"
 LDB_CONTROL_DOMAIN_SCOPE_OID = "1.2.840.113556.1.4.1339"
@@ -189,8 +192,8 @@ def encode_s4_object(s4_object):
 		for key in s4_object.keys():
 			if key == 'objectSid':
 				s4_object[key] = [decode_sid(s4_object[key][0])]
-			elif key in ['objectGUID', 'ipsecData', 'repsFrom', 'replUpToDateVector', 'userCertificate', 'dNSProperty', 'dnsRecord', 'securityIdentifier', 'mS-DS-CreatorSID', 'logonHours', 'mSMQSites', 'mSMQSignKey', 'currentLocation', 'dSASignature', 'linkTrackSecret', 'mSMQDigests', 'mSMQEncryptKey', 'mSMQSignCertificates', 'may', 'sIDHistory', 'msExchMailboxSecurityDescriptor', 'msExchMailboxGuid']:
-				ud.debug(ud.LDAP, ud.INFO, "encode_s4_object: attrib %s ignored during encoding" % key)  # don't recode
+			elif key in ['objectGUID', 'ipsecData', 'repsFrom', 'replUpToDateVector', 'userCertificate', 'dNSProperty', 'dnsRecord', 'securityIdentifier', 'mS-DS-CreatorSID', 'logonHours', 'mSMQSites', 'mSMQSignKey', 'currentLocation', 'dSASignature', 'linkTrackSecret', 'mSMQDigests', 'mSMQEncryptKey', 'mSMQSignCertificates', 'may', 'sIDHistory', 'msExchMailboxSecurityDescriptor', 'msExchMailboxGuid', 'jpegPhoto']:
+				ud.debug(ud.LDAP, ud.PROCESS, "encode_s4_object: attrib %s ignored during encoding" % key)  # don't recode
 			else:
 				try:
 					s4_object[key] = encode_attriblist(s4_object[key])
@@ -1051,7 +1054,7 @@ class s4(univention.s4connector.ucs):
 		if isinstance(GUID, type(u'')):
 			return GUID.encode('ISO-8859-1').encode('base64')
 		else:
-			return unicode(GUID, 'latin').encode('ISO-8859-1').encode('base64')
+			return GUID.encode('base64')
 
 	def _get_DN_for_GUID(self, GUID):
 		_d = ud.function('ldap._get_DN_for_GUID')
@@ -1419,8 +1422,12 @@ class s4(univention.s4connector.ucs):
 		object['attributes'] = element[1]
 		for key in object['attributes'].keys():
 			vals = []
-			for value in object['attributes'][key]:
-				vals.append(self.encode(value))
+			if key in DECODE_IGNORELIST:
+				for value in object['attributes'][key]:
+					vals.append(value)
+			else:
+				for value in object['attributes'][key]:
+					vals.append(self.encode(value))
 			object['attributes'][key] = vals
 
 		if deleted_object:  # dn is in deleted-objects-container, need to parse to original dn
@@ -2723,7 +2730,7 @@ class s4(univention.s4connector.ucs):
 											not attribute_type[attribute].compare_function(list(current_s4_values), list(value))
 										if modified:
 											if hasattr(attribute_type[attribute], 'mapping') and len(attribute_type[attribute].mapping) > 0 and attribute_type[attribute].mapping[0]:
-												ud.debug(ud.LDAP, ud.PROCESS, "Calling single value mapping function")
+												ud.debug(ud.LDAP, ud.ERROR, "Calling value mapping function for %s" % (attribute,))
 												value = attribute_type[attribute].mapping[0](self, None, object)
 											modlist.append((ldap.MOD_REPLACE, s4_attribute, value))
 									else:
