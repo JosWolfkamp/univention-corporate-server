@@ -67,7 +67,7 @@ def ntsd_to_ucs_mapping(s4connector, key, s4_object):
 	ud.debug(ud.LDAP, ud.INFO, "ntsd_to_ucs_mapping")
 
 	ntsd_ndr_unicode = s4_object['attributes']['nTSecurityDescriptor'][0]
-	ntsd_ndr = ntsd_ndr_unicode.encode('Latin-1')  # revert conversion done in __object_from_element
+	ntsd_ndr = ntsd_ndr_unicode.encode('latin1')  # revert conversion done in __object_from_element
 
 	domain_sid = security.dom_sid(s4connector.s4_sid)
 	return decode_sd_in_ndr_to_sddl(domain_sid, ntsd_ndr)
