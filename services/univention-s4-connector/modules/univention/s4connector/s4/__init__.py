@@ -2729,9 +2729,8 @@ class s4(univention.s4connector.ucs):
 										modified = (not current_s4_values or not value) or \
 											not attribute_type[attribute].compare_function(list(current_s4_values), list(value))
 										if modified:
-											if hasattr(attribute_type[attribute], 'mapping') and len(attribute_type[attribute].mapping) > 0 and attribute_type[attribute].mapping[0]:
-												ud.debug(ud.LDAP, ud.ERROR, "Calling value mapping function for %s" % (attribute,))
-												value = attribute_type[attribute].mapping[0](self, None, object)
+											#"object" is already mapped with the mapping functions. no need to map it again.
+											value = object['attributes'].get(attr)
 											modlist.append((ldap.MOD_REPLACE, s4_attribute, value))
 									else:
 										if to_remove:
