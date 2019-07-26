@@ -167,7 +167,7 @@ define([
 			this._alertDialog._position();
 		},
 
-		confirm: function(/*String|_WidgetBase*/ message, /*Object[]*/ options, /*String?*/ title) {
+		confirm: function(/*String|_WidgetBase*/ message, /*Object[]*/ options, /*String?*/ title, /*String?*/ dialogClass) {
 			// summary:
 			//		Popup a confirmation dialog with a given message string and a
 			//		list of options to choose from.
@@ -192,6 +192,8 @@ define([
 			//		and the callback function for this default option is executed directly.
 			// title:
 			//		Optional title for the dialog.
+			// dialogClass
+			// 		Optional css classes for the created dialog.
 			//
 			// example:
 			//		A simple example that uses the 'default' property.
@@ -249,6 +251,9 @@ define([
 				message: message,
 				options: options
 			});
+			if (dialogClass) {
+				domClass.add(confirmDialog.domNode, dialogClass);
+			}
 
 			// connect to 'confirm' event to close the dialog in any case
 			var deferred = new Deferred();
