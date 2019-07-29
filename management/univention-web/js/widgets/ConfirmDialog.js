@@ -203,7 +203,9 @@ define([
 			}
 
 			// put the layout together
-			this._container = new ContainerWidget({});
+			this._container = new ContainerWidget({
+				'class': 'umcConfirmDialogContentWrapper'
+			});
 			this._container.addChild(buttons);
 			this._container.startup();
 
