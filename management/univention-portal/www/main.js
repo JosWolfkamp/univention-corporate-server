@@ -37,6 +37,8 @@ define([
 	"dojo/aspect",
 	"dojo/when",
 	"dojo/on",
+	"dojo/on/debounce",
+	"dojo/topic",
 	"dojo/query",
 	"dojo/dom",
 	"dojo/dom-class",
@@ -57,6 +59,10 @@ define([
 	"dijit/DropDownMenu",
 	"dijit/MenuItem",
 	"dijit/form/DropDownButton",
+	"dijit/layout/StackContainer",
+	"dijit/layout/StackController",
+	"dijit/layout/ContentPane",
+	"dijit/layout/TabContainer",
 	"umc/tools",
 	"umc/render",
 	"umc/store",
@@ -79,7 +85,7 @@ define([
 	"umc/json!/univention/portal/portal.json", // -> contains entries of this portal as specified in the LDAP directory
 	"umc/json!/univention/portal/apps.json", // -> contains all locally installed apps
 	"umc/i18n!portal"
-], function(declare, lang, array, win, Deferred, aspect, when, on, dojoQuery, dom, domClass, domAttr, domGeometry, domStyle, domConstruct, mouse, Source, all, sprintf, Standby, dijitFocus, a11y, registry, Dialog, Tooltip, DropDownMenu, MenuItem, DropDownButton, tools, render, store, json, dialog, Button, Form, ContainerWidget, ConfirmDialog, StandbyMixin, MultiInput, put, purify, login, PortalCategory, PortalEntryWizard, PortalEntryWizardPreviewTile, portalTools, i18nTools, portalJson, installedApps, _) {
+], function(declare, lang, array, win, Deferred, aspect, when, on, onDebounce, topic, dojoQuery, dom, domClass, domAttr, domGeometry, domStyle, domConstruct, mouse, Source, all, sprintf, Standby, dijitFocus, a11y, registry, Dialog, Tooltip, DropDownMenu, MenuItem, DropDownButton, StackContainer, StackController, ContentPane, TabContainer, tools, render, store, json, dialog, Button, Form, ContainerWidget, ConfirmDialog, StandbyMixin, MultiInput, put, purify, login, PortalCategory, PortalEntryWizard, PortalEntryWizardPreviewTile, portalTools, i18nTools, portalJson, installedApps, _) {
 
 	// convert IPv6 addresses to their canonical form:
 	//   ::1:2 -> 0000:0000:0000:0000:0000:0000:0001:0002
@@ -811,6 +817,20 @@ define([
 			this._cleanupList.widgets.push(portalCategory);
 
 			switch (renderMode) {
+				case portalTools.RenderMode.NORMAL:
+					portalCategory.own(on(portalCategory, 'openIframe', lang.hitch(this, function(name, url) {
+						this._iframeOpen = true;
+						this._handleWindowResize();
+						this._iframeMap[name] = new ContentPane({
+							title: name,
+							closable: true,
+							content: put('iframe[src=$]', url),
+						});
+						this._iframeContainer.addChild(this._iframeMap[name]);
+						this._iframeContainer.selectChild(this._iframeMap[name]);
+						window.requestAnimationFrame(lang.hitch(this._iframeContainer, 'resize'));
+					})));
+					break;
 				case portalTools.RenderMode.EDIT:
 					portalCategory.own(on(portalCategory, 'addEntry', lang.hitch(this, function() {
 						this.editPortalEntry(portalCategory);
@@ -1219,6 +1239,29 @@ define([
 				return;
 			}
 
+			this._iframeMap = {};
+			// this._iframeContainer = new StackContainer({
+				// 'class': 'iframeContainer'
+			// });
+			this._iframeContainer = new TabContainer({
+				'class': 'iframeContainer'
+			});
+			topic.subscribe(this._iframeContainer.id + '-removeChild', lang.hitch(this, function() {
+				this._iframeOpen = this._iframeContainer.hasChildren();
+				if (!this._iframeOpen) {
+					this._handleWindowResize();
+				}
+			}));
+			// this._iframeController = new StackController({
+				// containerId: this._iframeContainer.id,
+				// 'class': 'iframeController'
+			// });
+			// put(dom.byId('umcHeaderLeft'), this._iframeController.domNode);
+			// put(dom.byId('iframes'), this._iframeController.domNode);
+			put(dom.byId('iframes'), this._iframeContainer.domNode);
+			this._iframeContainer.startup();
+			// this._iframeController.startup();
+
 			this._initProperties();
 			this._registerEventHandlerForSearch();
 			this._setupEditModeIfAuthorized();
@@ -1228,9 +1271,9 @@ define([
 				dojoQuery('body').addClass('logged-in');
 			}
 
-			on(window, 'resize', lang.hitch(this, function() {
-				this._handleWindowResize();
-			}));
+			this._handleWindowResize();
+			on(window, onDebounce('resize', 200), lang.hitch(this, '_handleWindowResize'));
+			window.t = this; // TODO
 		},
 
 		_initProperties: function() {
@@ -1243,6 +1286,8 @@ define([
 				handlers: [],
 				widgets: []
 			};
+
+			this._iframeOpen = false;
 		},
 
 		_registerEventHandlerForSearch: function() {
@@ -1384,7 +1429,8 @@ define([
 			this._renderContent(renderMode);
 			this._updateSearch(renderMode);
 
-			this._rearrangeCategories();
+			// this._rearrangeCategories();
+			this._handleWindowResize();
 		},
 
 		_cleanupPreviousRender: function() {
@@ -1751,6 +1797,9 @@ define([
 			if (!this._portalCategories.length) {
 				return;
 			}
+			if (this._iframeOpen) {
+				return;
+			}
 
 			// reset previous _rearrangeCategories
 			this._portalCategories.forEach(function(category) {
@@ -1885,17 +1934,16 @@ define([
 			}));
 		},
 
-		_resizeDeferred: null,
 		_handleWindowResize: function() {
-			if (this._resizeDeferred && !this._resizeDeferred.isFulfilled()) {
-				this._resizeDeferred.cancel();
-			}
+			var box = win.getBox();
+			var small = box.w <= 549 || this._iframeOpen;
+			domClass.toggle(dom.byId('portal'), 'portal--small', small);
+			this._portalCategories.forEach(function(category) {
+				domClass.toggle(category.grid.domNode, 'umcAppGallery--small', small);
+			});
+			domClass.toggle(dom.byId('portal'), 'portal--iframeOpen', this._iframeOpen);
 
-			this._resizeDeferred = tools.defer(lang.hitch(this, function() {
-				this._rearrangeCategories();
-			}), 200);
-
-			this._resizeDeferred.otherwise(function() { /* prevent logging of exception */ });
+			this._rearrangeCategories();
 		},
 
 		// these functions are used in management/univention-portal/test/test.js

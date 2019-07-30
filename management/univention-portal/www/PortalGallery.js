@@ -283,6 +283,7 @@ define([
 				case portalTools.RenderMode.NORMAL:
 					domNode = this.inherited(arguments);
 					var link = put('a[href=$]', this._getWebInterfaceUrl(item));
+
 					var openLinkInNewWindow = false;
 					if (this.defaultLinkTarget && this.defaultLinkTarget === 'newwindow') {
 						openLinkInNewWindow = true;
@@ -296,6 +297,26 @@ define([
 					if (openLinkInNewWindow) {
 						link.target = '_blank';
 						link.rel = 'noopener';
+					}
+
+					var embedded = false;
+					if (this.defaultLinkTarget && this.defaultLinkTarget === 'embedded') {
+						embedded = true;
+					}
+					switch (item.linkTarget) {
+						case 'samewindow':
+							embedded = false; break;
+						case 'newwindow':
+							embedded = false; break;
+						case 'embedded':
+							embedded = true; break;
+					}
+					if (embedded) {
+						link.onclick = lang.hitch(this, function(e) {
+							e.preventDefault();
+							// put(dojo.body(), 'iframe[src=$]', this._getWebInterfaceUrl(item));
+							this.onOpenIframe(item.name, this._getWebInterfaceUrl(item));
+						});
 					}
 					put(domNode, link, query('.umcGalleryItem', domNode)[0]);
 					break;
@@ -352,6 +373,10 @@ define([
 		},
 
 		onEntryNotInPortalJSON: function(entry) {
+			// event stub
+		},
+
+		onOpenIframe: function(name, url) {
 			// event stub
 		},
 
