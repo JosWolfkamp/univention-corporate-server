@@ -243,25 +243,30 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		'prerm',  # dh_installdeb
 		'prerm.debhelper',  # dh_installdeb
 		'README.Debian',  # dh_installdocs
+		'mount',  # dh_systemd_enable
+		'path',  # dh_systemd_enable
 		'service',  # dh_systemd_enable
 		'sgmlcatalogs',  # dh_installcatalogs
 		'sharedmimeinfo',  # dh_installmime
 		'shlibs',  # dh_installdeb
+		'socket',  # dh_systemd_enable
 		'substvars',  # dh_gencontrol
 		'symbols',  # dh_makeshlibs
 		'symbols.i386',  # dh_makeshlibs
+		'target',  # dh_systemd_enable
 		'templates',  # dh_installdebconf
-		'TODO',  # dh_installdocs
+		'timer',  # dh_systemd_enable
 		'tmpfile',  # dh_systemd_enable
+		'TODO',  # dh_installdocs
 		'triggers',  # dh_installdeb
 		'umc-modules',  # dh-umc-modules-install
 		'univention-config-registry-categories',  # univention-install-config-registry-info
 		'univention-config-registry-mapping',  # univention-install-config-registry-info
 		'univention-config-registry',  # univention-install-config-registry
 		'univention-config-registry-variables',  # univention-install-config-registry-info
+		'univention-l10n',  # univention-l10n-build / univention-l10n-install
 		'univention-service',  # univention-install-service-info
 		'wm',  # dh_installwm
-		'univention-l10n',  # univention-l10n-build / univention-l10n-install
 	))
 
 	NAMED_DH_FILES = set((
