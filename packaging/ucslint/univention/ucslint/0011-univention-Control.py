@@ -195,6 +195,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		'compat',  # dh
 		'control',
 		'copyright',  # dh_installdocs default
+		'debhelper-build-stamp',  # dh
 		'files',  # dh_builddeb
 		'NEWS',  # dh_installchangelogs default
 		'rules',
@@ -242,6 +243,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		'prerm',  # dh_installdeb
 		'prerm.debhelper',  # dh_installdeb
 		'README.Debian',  # dh_installdocs
+		'service',  # dh_systemd_enable
 		'sgmlcatalogs',  # dh_installcatalogs
 		'sharedmimeinfo',  # dh_installmime
 		'shlibs',  # dh_installdeb
@@ -250,6 +252,7 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 		'symbols.i386',  # dh_makeshlibs
 		'templates',  # dh_installdebconf
 		'TODO',  # dh_installdocs
+		'tmpfile',  # dh_systemd_enable
 		'triggers',  # dh_installdeb
 		'umc-modules',  # dh-umc-modules-install
 		'univention-config-registry-categories',  # univention-install-config-registry-info
