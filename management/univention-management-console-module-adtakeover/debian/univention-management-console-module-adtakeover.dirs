@@ -1,1 +1,2 @@
-usr/share/univention-management-console-frontend/js/umc/modules/adtakeover
+usr/share/univention-ad-connector
+var/cache/univention-ad-connector
