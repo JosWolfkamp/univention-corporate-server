@@ -30,8 +30,14 @@
 
 from __future__ import absolute_import
 import univention.ucslint.base as uub
-from os.path import basename, join, splitext
+from os import walk
+from os.path import basename, dirname, isdir, join, normpath, relpath, splitext
 from codecs import open
+from glob import glob
+try:
+	from typing import Dict, Iterator, List, Set, Tuple  # noqa F401
+except ImportError:
+	pass
 
 
 class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
@@ -39,12 +45,16 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 	def getMsgIds(self):
 		return {
 			'0018-1': (uub.RESULT_STYLE, 'wrong script name in comment'),
+			'0018-2': (uub.RESULT_STYLE, 'Unneeded entry in debian/dirs; the directory is implicitly created by another debhelper')
 		}
 
 	def check(self, path):
+		# type: (str) -> None
 		self.check_scripts(path)
+		self.check_dirs(path)
 
 	def check_scripts(self, path):
+		# type: (str) -> None
 		SCRIPTS = frozenset(('preinst', 'postinst', 'prerm', 'postrm'))
 		debianpath = join(path, 'debian')
 		for script_path in uub.FilteredDirWalkGenerator(debianpath, suffixes=SCRIPTS):
@@ -62,8 +72,72 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 								filename=script_path,
 								line=nr)
 
+	def check_dirs(self, path):
+		# type: (str) -> None
+		DIRS = frozenset((
+			'bin',
+			'etc',
+			'etc/cron.d',
+			'etc/cron.hourly',
+			'etc/cron.daily',
+			'etc/cron.weekly',
+			'etc/cron.monthly',
+			'etc/default',
+			'etc/init.d',
+			'lib',
+			'lib/security',
+			'sbin',
+			'usr',
+			'usr/bin',
+			'usr/lib',
+			'usr/sbin',
+			'var',
+			'var/lib',
+			'var/log',
+			'var/www',
+		))
+		dirs = {}  # type: Dict[str, Set[str]]
+		debianpath = join(path, 'debian')
+
+		for fp in uub.FilteredDirWalkGenerator(debianpath, suffixes=['install']):
+			package, suffix = self.split_pkg(fp)
+			pkg = dirs.setdefault(package, {'usr/share/doc/' + package} | DIRS)
+			# ~/doc/2018-04-11-ApiDoc/pymerge
+			for lnr, line in self.lines(fp):
+				for src, dst in self.process_install(line):
+					self.debug('%s:%d Installs %s to %s' % (fp, lnr, src, dst))
+					path = dirname(normpath(dst.strip('/')))
+					while path > '/':
+						pkg.add(path)
+						path = dirname(path)
+
+		for fp in uub.FilteredDirWalkGenerator(debianpath, suffixes=['dirs']):
+			package, suffix = self.split_pkg(fp)
+			pkg = dirs.setdefault(package, {'usr/share/doc/' + package} | DIRS)
+			for lnr, line in self.lines(fp):
+				line = line.strip('/')
+				if line in pkg:
+					self.addmsg(
+						'0018-2',
+						'Unneeded directory %r' % (line,),
+						filename=fp,
+						line=lnr)
+
+	@staticmethod
+	def lines(name):
+		# type: (str) -> Iterator[Tuple[int, str]]
+		with open(name, 'r', 'utf-8') as stream:
+			for lnr, line in enumerate(stream, start=1):
+				line = line.strip()
+				if not line:
+					continue
+				if line.startswith('#'):
+					continue
+				yield (lnr, line)
+
 	@staticmethod
 	def split_pkg(name):
+		# type: (str) -> Tuple[str, str]
 		filename = basename(name)
 		if '.' in filename:
 			package, suffix = splitext(filename)
@@ -73,3 +147,30 @@ class UniventionPackageCheck(uub.UniventionPackageCheckDebian):
 			suffix = filename
 
 		return (package, suffix)
+
+	@staticmethod
+	def process_install(line):
+		# type: (str) -> Iterator[Tuple[str, str]]
+		"""
+		>>> list(process_install("usr"))
+		[('usr', 'usr')]
+		>>> list(process_install("usr    prefix/"))
+		[('usr', 'prefix/usr')]
+		>>> list(process_install("src/*.py"))
+		[('src/__init__.py', '__init__.py')]
+		>>> list(process_install("src/*.py    prefix/"))
+		[('src/__init__.py', 'prefix/__init__.py')]
+		"""
+		args = [_.strip('/') for _ in line.split()]
+		dst = args.pop() if len(args) >= 2 else dirname(args[0])
+
+		for src in args:
+			for fn in glob(src) if ('*' in src or '?' in src or '[' in src) else [src]:
+				if isdir(fn):
+					for root, dirs, files in walk(fn):
+						for name in files:
+							src_path = join(root, name)
+							dst_path = join(dst, relpath(src_path, dirname(fn)))
+							yield (src_path, dst_path)
+				else:
+					yield (fn, join(dst, basename(fn)))
