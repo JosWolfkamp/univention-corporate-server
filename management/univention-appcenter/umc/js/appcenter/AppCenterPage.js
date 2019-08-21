@@ -295,8 +295,8 @@ define([
 		_getAppSuggestions: function() {
 			return tools.umcpCommand('appcenter/suggestions', {version: 'v1'}, false).then(function(data) {
 				return data.result;
-			}, function() {
-				console.warn('Could not load appcenter/suggestions');
+			}, function(e) {
+				console.warn('appcenter/suggestions failed. Falling back to empty array.', e.response.data.message);
 				return [];
 			});
 		},

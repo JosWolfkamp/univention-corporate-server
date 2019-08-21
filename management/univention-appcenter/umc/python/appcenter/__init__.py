@@ -40,6 +40,7 @@ import logging
 from base64 import encodestring
 from threading import Thread
 from json import load
+import jsonschema
 
 # related third party
 import notifier
@@ -250,20 +251,18 @@ class Instance(umcm.Base, ProgressMixin):
 				return False
 		return True
 
+	@sanitize(version=StringSanitizer(required=True))
 	@simple_response
 	def suggestions(self, version):
-		try:
-			cache = AppCenterCache.build(server=default_server())
-			cache_file = cache.get_cache_file('.suggestions.json')
-			with open(cache_file) as fd:
-				json = load(fd)
-		except (EnvironmentError, ValueError):
-			raise umcm.UMC_Error(_('Could not load suggestions.'))
-		else:
-			try:
-				return json[version]
-			except (KeyError, AttributeError):
-				raise umcm.UMC_Error(_('Unexpected suggestions data.'))
+		cache = AppCenterCache.build(server=default_server())
+		json_file = cache.get_cache_file('.suggestions.json')
+		json_schema_file = cache.get_cache_file('.suggestions_schema.json')
+		with open(json_file) as fd:
+			json = load(fd)
+		with open(json_schema_file) as fd:
+			json_schema = load(fd)
+		jsonschema.validate(json, json_schema)
+		return json[version]
 
 	@simple_response
 	def enable_docker(self):
