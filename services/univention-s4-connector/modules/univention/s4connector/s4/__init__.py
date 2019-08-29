@@ -604,20 +604,20 @@ def decode_addlist(list, encoding):
 
 
 def compatible_list(list):
-	return encode_list(decode_list(list, 'latin'), 'utf8')
+	return encode_list(decode_list(list, 'latin1'), 'utf8')
 
 
 def compatible_modlist(list):
-	return encode_modlist(decode_modlist(list, 'latin'), 'utf8')
+	return encode_modlist(decode_modlist(list, 'latin1'), 'utf8')
 
 
 def compatible_addlist(list):
-	return encode_addlist(decode_addlist(list, 'latin'), 'utf8')
+	return encode_addlist(decode_addlist(list, 'latin1'), 'utf8')
 
 
 def compatible_modstring(string):
 	if hasattr(string, 'decode') and not isinstance(string, types.UnicodeType):
-		string = string.decode('latin')
+		string = string.decode('latin1')
 	if hasattr(string, 'encode'):
 		string = string.encode('utf8')
 	return string
@@ -888,7 +888,7 @@ class s4(univention.s4connector.ucs):
 		try:
 			return unicode(string)
 		except:  # FIXME: which exception is to be caught?
-			return unicode(string, 'Latin-1')
+			return unicode(string, 'latin1')
 
 	def _get_lastUSN(self):
 		_d = ud.function('ldap._get_lastUSN')
@@ -909,7 +909,7 @@ class s4(univention.s4connector.ucs):
 	def __encode_GUID(self, GUID):
 		# GUID may be unicode
 		if isinstance(GUID, type(u'')):
-			return GUID.encode('ISO-8859-1').encode('base64')
+			return GUID.encode('latin1').encode('base64')
 		else:
 			return GUID.encode('base64')
 
