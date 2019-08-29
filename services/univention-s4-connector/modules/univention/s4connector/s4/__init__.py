@@ -2574,12 +2574,14 @@ class s4(univention.s4connector.ucs):
 
 									ud.debug(ud.LDAP, ud.INFO, "sync_from_ucs: The current S4 values: %s" % current_s4_values)
 
-									if (to_add or to_remove) and attribute_type[attribute].single_value:
+									has_mapping_function = hasattr(attribute_type[attribute], 'mapping') and len(attribute_type[attribute].mapping) > 0 and attribute_type[attribute].mapping[0]
+
+									if (to_add or to_remove) and (attribute_type[attribute].single_value or has_mapping_function):
 										modified = (not current_s4_values or not value) or \
 											not attribute_type[attribute].compare_function(list(current_s4_values), list(value))
 										if modified:
-											if hasattr(attribute_type[attribute], 'mapping') and len(attribute_type[attribute].mapping) > 0 and attribute_type[attribute].mapping[0]:
-												ud.debug(ud.LDAP, ud.PROCESS, "Calling single value mapping function")
+											if has_mapping_function:
+												ud.debug(ud.LDAP, ud.PROCESS, "Calling value mapping function for attribute %s" % attribute)
 												value = attribute_type[attribute].mapping[0](self, None, object)
 											modlist.append((ldap.MOD_REPLACE, s4_attribute, value))
 									else:
