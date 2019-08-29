@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-#
+#!/bin/sh
 #
 # Univention Nagios Plugin
 #  check_univention_nscd: check if nscd is bound to its socket.
