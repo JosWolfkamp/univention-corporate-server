@@ -34,6 +34,12 @@ connector_running_on_this_host || exit 137
 
 UDM_users_user_username="$(random_chars)"
 UDM_users_user_lastname="$(random_chars)"
+AD_secretary_DN="CN=$UDM_users_user_username,CN=Users,$(ad_get_base)"
+UDM_secretary_DN="uid=$UDM_users_user_username,cn=users,$(ucr get ldap/base)"
+ad_createuser "$UDM_users_user_username" || fail_test 110
+
+UDM_users_user_username="$(random_chars)"
+UDM_users_user_lastname="$(random_chars)"
 UDM_users_user_firstname="$(random_chars)"
 UDM_users_user_description="$(random_chars)"
 UDM_users_user_street="$(random_chars)"
@@ -41,7 +47,8 @@ UDM_users_user_city="$(random_chars)"
 UDM_users_user_postcode="$(random_chars)"
 UDM_users_user_profilepath="$(random_chars)"
 UDM_users_user_scriptpath="$(random_chars)"
-AD_DN="CN=$UDM_users_user_username,CN=users,$(ad_get_base)"
+AD_DN="CN=$UDM_users_user_username,CN=Users,$(ad_get_base)"
+UDM_DN="uid=$UDM_users_user_username,cn=users,$(ucr get ldap/base)"
 UDM_users_user_employeeNumber="a$(random_chars)"
 UDM_users_user_employeeType="a$(random_chars)"
 UDM_users_user_country="US"
@@ -53,12 +60,16 @@ UDM_users_user_initials="a$(random_chars 1)"
 UDM_users_user_physicalDeliveryOfficeName="a$(random_chars)"
 UDM_users_user_postOfficeBox="a$(random_chars)"
 UDM_users_user_preferredLanguage="a$(random_chars)"
-
+UDM_users_user_userCert="MIICEjCCAXsCAg36MA0GCSqGSIb3DQEBBQUAMIGbMQswCQYDVQQGEwJKUDEOMAwGA1UECBMFVG9reW8xEDAOBgNVBAcTB0NodW8ta3UxETAPBgNVBAoTCEZyYW5rNEREMRgwFgYDVQQLEw9XZWJDZXJ0IFN1cHBvcnQxGDAWBgNVBAMTD0ZyYW5rNEREIFdlYiBDQTEjMCEGCSqGSIb3DQEJARYUc3VwcG9ydEBmcmFuazRkZC5jb20wHhcNMTIwODIyMDUyNjU0WhcNMTcwODIxMDUyNjU0WjBKMQswCQYDVQQGEwJKUDEOMAwGA1UECAwFVG9reW8xETAPBgNVBAoMCEZyYW5rNEREMRgwFgYDVQQDDA93d3cuZXhhbXBsZS5jb20wXDANBgkqhkiG9w0BAQEFAANLADBIAkEAm/xmkHmEQrurE/0re/jeFRLl8ZPjBop7uLHhnia7lQG/5zDtZIUC3RVpqDSwBuw/NTweGyuP+o8AG98HxqxTBwIDAQABMA0GCSqGSIb3DQEBBQUAA4GBABS2TLuBeTPmcaTaUW/LCB2NYOy8GMdzR1mx8iBIu2H6/E2tiY3RIevV2OW61qY2/XRQg7YPxx3ffeUugX9F4J/iPnnu1zAxxyBy2VguKv4SWjRFoRkIfIlHX0qVviMhSlNy2ioFLy7JcPZb+v3ftDGywUqcBiVDoea0Hn+GmxZACg=="
+AD_users_user_userCert="$(echo $UDM_users_user_userCert | base64 --decode)"
+UDM_users_user_jpegPhoto="/9j/4AAQSkZJRgABAQEBLAEsAAD/4Se4"
+AD_users_user_jpegPhoto="$(echo $UDM_users_user_jpegPhoto | base64 --decode)"
 SYNCMODE="$(ad_get_sync_mode)"
 
 ad_set_sync_mode "sync"
 
 #We have to wait between all the AD-Commands: See #18501
+ad_wait_for_synchronization; fail_bool 0 110
 ad_createuser "$UDM_users_user_username" || fail_test 110
 ad_wait_for_synchronization; fail_bool 0 110
 ad_set_attribute "$AD_DN" "givenName" "$UDM_users_user_firstname" || fail_test 110
@@ -78,6 +89,12 @@ ad_wait_for_synchronization; fail_bool 0 110
 ad_set_attribute "$AD_DN" "scriptPath" "$UDM_users_user_scriptpath" || fail_test 110
 ad_wait_for_synchronization; fail_bool 0 110
 if $ext_mapping; then
+	ad_set_attribute "$AD_DN" "userCertificate" "$UDM_users_user_userCert" "" "True"|| fail_test 110
+	ad_wait_for_synchronization; fail_bool 0 110
+	ad_set_attribute "$AD_DN" "jpegPhoto" "$UDM_users_user_jpegPhoto" "" "True"|| fail_test 110
+	ad_wait_for_synchronization; fail_bool 0 110
+	ad_set_attribute "$AD_DN" "secretary" "$AD_DN" || fail_test 110
+	ad_wait_for_synchronization; fail_bool 0 110
 	ad_set_attribute "$AD_DN" "employeeNumber" "$UDM_users_user_employeeNumber" || fail_test 110
 	ad_wait_for_synchronization; fail_bool 0 110
 	ad_set_attribute "$AD_DN" "employeeType" "$UDM_users_user_employeeType" || fail_test 110
@@ -116,7 +133,10 @@ udm_verify_udm_attribute "postcode" "$UDM_users_user_postcode" "users/user"; fai
 udm_verify_udm_attribute "profilepath" "$UDM_users_user_profilepath" "users/user"; fail_bool 0 121 "See #18501"
 udm_verify_udm_attribute "scriptpath" "$UDM_users_user_scriptpath" "users/user"; fail_bool 0 121 "See #18501"
 if $ext_mapping; then
+	udm_verify_udm_attribute "jpegPhoto" "$UDM_users_user_jpegPhoto" "users/user"; fail_bool 0 121 "See #18501"
+	udm_verify_udm_attribute "secretary" "$UDM_DN" "users/user"; fail_bool 0 121 "See #18501"
 	udm_verify_udm_attribute "employeeNumber" "$UDM_users_user_employeeNumber" "users/user"; fail_bool 0 121 "See #18501"
+	udm_verify_udm_attribute "userCertificate" "$UDM_users_user_userCert" "users/user"; fail_bool 0 121 "See #18501"
 	udm_verify_udm_attribute "employeeType" "$UDM_users_user_employeeType" "users/user"; fail_bool 0 121 "See #18501"
 	udm_verify_udm_attribute "shell" "$UDM_users_user_loginShell" "users/user"; fail_bool 0 121 "See #18501"
 	udm_verify_udm_attribute "title" "$UDM_users_user_title" "users/user"; fail_bool 0 121 "See #18501"
@@ -131,7 +151,7 @@ if false; then
 fi
 
 ad_verify_attribute "$AD_DN" "description" "$UDM_users_user_description"; fail_bool 0 110
-ad_verify_attribute	"$AD_DN" "sAMAccountName" "$UDM_users_user_username"; fail_bool 0 110
+ad_verify_attribute "$AD_DN" "sAMAccountName" "$UDM_users_user_username"; fail_bool 0 110
 ad_verify_attribute "$AD_DN" "givenName" "$UDM_users_user_firstname"; fail_bool 0 110
 ad_verify_attribute "$AD_DN" "sn" "$UDM_users_user_lastname"; fail_bool 0 110
 ad_verify_attribute "$AD_DN" "l" "$UDM_users_user_city"; fail_bool 0 110
@@ -140,6 +160,9 @@ ad_verify_attribute "$AD_DN" "profilePath" "$UDM_users_user_profilepath"; fail_b
 ad_verify_attribute "$AD_DN" "scriptPath" "$UDM_users_user_scriptpath"; fail_bool 0 110
 ad_verify_attribute "$AD_DN" "streetAddress" "$UDM_users_user_street"; fail_bool 0 110
 if $ext_mapping; then
+	ad_verify_attribute "$AD_DN" "secretary" "$AD_DN" "" "true"; fail_bool 0 110
+	ad_verify_attribute "$AD_DN" "jpegPhoto" "$AD_users_user_jpegPhoto"; fail_bool 0 110
+	ad_verify_attribute "$AD_DN" "userCertificate" "$AD_users_user_userCert"; fail_bool 0 110
 	ad_verify_attribute "$AD_DN" "employeeNumber" "$UDM_users_user_employeeNumber"; fail_bool 0 110
 	ad_verify_attribute "$AD_DN" "employeeType" "$UDM_users_user_employeeType"; fail_bool 0 110
 	ad_verify_attribute "$AD_DN" "loginShell" "$UDM_users_user_loginShell"; fail_bool 0 110
@@ -154,7 +177,7 @@ if false; then
 	ad_verify_attribute "$AD_DN" "preferredLanguage" "$UDM_users_user_preferredLanguage"; fail_bool 0 110
 fi
 ### Test if mapping of user-attributes is configurable via ucr variable 'connector/s4/mapping/user/attributes/ignorelist'
-ucr set 'connector/s4/mapping/user/attributes/ignorelist'='employeeNumber,employeeType,departmentNumber,loginShell,unixhome,title,uidNumber,gidNumber,roomNumber'  # state,country,initials,physicalDeliveryOfficeName,postOfficeBox,preferredLanguage'
+ucr set 'connector/s4/mapping/user/attributes/ignorelist'='jpegPhoto,secretary,userCertificate,employeeNumber,employeeType,departmentNumber,loginShell,unixhome,title,uidNumber,gidNumber,roomNumber'  # state,country,initials,physicalDeliveryOfficeName,postOfficeBox,preferredLanguage'
 
 ad_connector_restart || exit 137
 test -n "$connector_s4_ldap_host" || exit 137
@@ -172,8 +195,15 @@ UDM_users_user_initials="b$(random_chars 1)"
 UDM_users_user_physicalDeliveryOfficeName="b$(random_chars)"
 UDM_users_user_postOfficeBox="b$(random_chars)"
 UDM_users_user_preferredLanguage="b$(random_chars)"
+UDM_users_user_userCert="MIICVjCCAb8CAg37MA0GCSqGSIb3DQEBBQUAMIGbMQswCQYDVQQGEwJKUDEOMAwGA1UECBMFVG9reW8xEDAOBgNVBAcTB0NodW8ta3UxETAPBgNVBAoTCEZyYW5rNEREMRgwFgYDVQQLEw9XZWJDZXJ0IFN1cHBvcnQxGDAWBgNVBAMTD0ZyYW5rNEREIFdlYiBDQTEjMCEGCSqGSIb3DQEJARYUc3VwcG9ydEBmcmFuazRkZC5jb20wHhcNMTIwODIyMDUyNzIzWhcNMTcwODIxMDUyNzIzWjBKMQswCQYDVQQGEwJKUDEOMAwGA1UECAwFVG9reW8xETAPBgNVBAoMCEZyYW5rNEREMRgwFgYDVQQDDA93d3cuZXhhbXBsZS5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMYBBrx5PlP0WNI/ZdzD+6Pktmurn+F2kQYbtc7XQh8/LTBvCo+P6iZoLEmUA9e7EXLRxgU1CVqeAi7QcAn9MwBlc8ksFJHB0rtf9pmf8Oza9E0Bynlq/4/Kb1x+d+AyhL7oK9tQwB24uHOueHi1C/iVv8CSWKiYe6hzN1txYe8rAgMBAAEwDQYJKoZIhvcNAQEFBQADgYEAASPdjigJkXCqKWpnZ/Oc75EUcMi6HztaW8abUMlYXPIgkV2F7YanHOB7K4f7OOLjiz8DTPFfjC9UeuErhaA/zzWi8ewMTFZW/WshOrm3fNvcMrMLKtH534JKvcdMg6qIdjTFINIrevnAhf0cwULaebn+lMs8Pdl7y37+sfluVokK"
+AD_users_user_userCert="$(echo $UDM_users_user_userCert | base64 --decode)"
+UDM_users_user_jpegPhoto2="/9j/4AAQSkZ="
+AD_users_user_jpegPhoto2="$(echo $UDM_users_user_jpegPhoto2 | base64 --decode)"
+
 
 if $ext_mapping; then
+	ad_set_attribute "$AD_DN" "secretary" "$AD_secretary_DN" || fail_test 110
+	ad_wait_for_synchronization; fail_bool 0 110
 	ad_set_attribute "$AD_DN" "employeeNumber" "$UDM_users_user_employeeNumber" || fail_test 110
 	ad_wait_for_synchronization; fail_bool 0 110
 	ad_set_attribute "$AD_DN" "employeeType" "$UDM_users_user_employeeType" || fail_test 110
@@ -183,6 +213,10 @@ if $ext_mapping; then
 	ad_set_attribute "$AD_DN" "loginShell" "$UDM_users_user_loginShell" || fail_test 110
 	ad_wait_for_synchronization; fail_bool 0 110
 	ad_set_attribute "$AD_DN" "roomNumber" "$UDM_users_user_roomNumber" || fail_test 110
+	ad_wait_for_synchronization; fail_bool 0 110
+	ad_set_attribute "$AD_DN" "userCertificate" "$UDM_users_user_userCert" "" "True" || fail_test 110
+	ad_wait_for_synchronization; fail_bool 0 110
+	ad_set_attribute "$AD_DN" "jpegPhoto" "$UDM_users_user_jpegPhoto2" "" "True" || fail_test 110
 	ad_wait_for_synchronization; fail_bool 0 110
 #	ad_set_attribute "$AD_DN" "c" "$UDM_users_user_country" || fail_test 110
 #	ad_wait_for_synchronization; fail_bool 0 110
@@ -198,10 +232,13 @@ if $ext_mapping; then
 #	ad_wait_for_synchronization; fail_bool 0 110
 
 	ad_verify_attribute "$AD_DN" "employeeNumber" "$UDM_users_user_employeeNumber"; fail_bool 0 110
+	ad_verify_attribute "$AD_DN" "secretary" "$AD_secretary_DN" "" "true"; fail_bool 0 110
 	ad_verify_attribute "$AD_DN" "employeeType" "$UDM_users_user_employeeType"; fail_bool 0 110
 	ad_verify_attribute "$AD_DN" "loginShell" "$UDM_users_user_loginShell"; fail_bool 0 110
 	ad_verify_attribute "$AD_DN" "personalTitle" "$UDM_users_user_title"; fail_bool 0 110
 	ad_verify_attribute "$AD_DN" "roomNumber" "$UDM_users_user_roomNumber"; fail_bool 0 110
+	ad_verify_attribute "$AD_DN" "userCertificate" "$AD_users_user_userCert"; fail_bool 0 110
+	ad_verify_attribute "$AD_DN" "jpegPhoto" "$AD_users_user_jpegPhoto2"; fail_bool 0 110
 #	ad_verify_attribute "$AD_DN" "st" "$UDM_users_user_state"; fail_bool 0 110
 #	ad_verify_attribute "$AD_DN" "c" "$UDM_users_user_country"; fail_bool 0 110
 #	ad_verify_attribute "$AD_DN" "postOfficeBox" "$UDM_users_user_postOfficeBox"; fail_bool 0 110
@@ -209,10 +246,13 @@ if $ext_mapping; then
 #	ad_verify_attribute "$AD_DN" "preferredLanguage" "$UDM_users_user_preferredLanguage"; fail_bool 0 110
 
 	udm_verify_udm_attribute "employeeNumber" "$UDM_users_user_employeeNumber" "users/user"; fail_bool 1 121 "connector/s4/mapping/user/attributes/ignorelist does not apply"
+	udm_verify_udm_attribute "secretary" "$UDM_secretary_DN" "users/user"; fail_bool 1 121 "connector/s4/mapping/user/attributes/ignorelist does not apply"
 	udm_verify_udm_attribute "employeeType" "$UDM_users_user_employeeType" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist does not apply'
 	udm_verify_udm_attribute "shell" "$UDM_users_user_loginShell" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist does not apply'
 	udm_verify_udm_attribute "title" "$UDM_users_user_title" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist does not apply'
 	udm_verify_udm_attribute "roomNumber" "$UDM_users_user_roomNumber" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist does not apply'
+	udm_verify_udm_attribute "userCertificate" "$UDM_users_user_userCert" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist does not apply'
+	udm_verify_udm_attribute "jpegPhoto" "$UDM_users_user_jpegPhoto2" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist does not apply'
 #	udm_verify_udm_attribute "country" "$UDM_users_user_country" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist'
 #	udm_verify_udm_attribute "state" "$UDM_users_user_state" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist'
 #	udm_verify_udm_attribute "postOfficeBox" "$UDM_users_user_postOfficeBox" "users/user"; fail_bool 1 121 'connector/s4/mapping/user/attributes/ignorelist does not apply'

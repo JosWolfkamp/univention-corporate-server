@@ -656,7 +656,7 @@ class jpegPhoto(Upload):
 	def tostring(self, value):
 		# type: (Any) -> str
 		if value:
-			return base64.b64encode(value)
+			return value
 		else:
 			return ''
 
