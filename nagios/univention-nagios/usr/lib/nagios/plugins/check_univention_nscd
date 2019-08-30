@@ -33,7 +33,7 @@
 #
 
 VERSION="1.00"
-PROGNAME=`/usr/bin/basename $0`
+PROGNAME="${0##*/}"
 
 STATE_OK=0
 STATE_WARNING=1
@@ -107,7 +107,7 @@ nscd_processes_on_nscd_socket=0
 for pid in $pids_on_nscd_socket; do
 	process_path=$(readlink /proc/"$pid"/exe) ||
 		continue
-	process_name=$(basename "$process_path")
+	process_name="${process_path##*/}"
 	if [ "$process_name" = "nscd" ]; then
 		let nscd_processes_on_nscd_socket++
 	else
