@@ -116,8 +116,10 @@ then
 	fi
 fi
 
-nscd_processes_on_nscd_socket=0
+ns_pid="$(readlink /proc/self/ns/pid)"
 for pid in $pids_on_nscd_socket; do
+	[ "$ns_pid" = "$(readlink "/proc/$pid/ns/pid")" ] ||
+		continue
 	process_path=$(readlink /proc/"$pid"/exe) ||
 		continue
 
