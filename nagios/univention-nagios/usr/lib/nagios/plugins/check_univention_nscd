@@ -100,11 +100,10 @@ if [ ! -S $nscd_socket ]; then
 	exit $state
 fi
 
-pids_on_nscd_socket=$(fuser "$nscd_socket" 2>/dev/zero)
-RET=$?
-if (( $RET != 0 )); then
+if ! pids_on_nscd_socket=$(fuser "$nscd_socket" 2>/dev/zero)
+then
 	fuser_error=$(fuser "$nscd_socket" 2>&1)
-	if [[ "$fuser_error" != "" ]]; then
+	if [ -n "$fuser_error" ]; then
 		state=$STATE_UNKNOWN
 		get_state_string $state
 		echo "${STATE_STRING}: fuser command failed"
@@ -114,13 +113,10 @@ fi
 
 nscd_processes_on_nscd_socket=0
 for pid in $pids_on_nscd_socket; do
-	process_path=$(readlink /proc/"$pid"/exe)
-	if (( $? != 0 )); then
-		#Process died?
+	process_path=$(readlink /proc/"$pid"/exe) ||
 		continue
-	fi
 	process_name=$(basename "$process_path")
-	if [[ "$process_name" == "nscd" ]]; then
+	if [ "$process_name" = "nscd" ]; then
 		let nscd_processes_on_nscd_socket++
 	else
 		state=$STATE_CRITICAL
@@ -130,17 +126,17 @@ for pid in $pids_on_nscd_socket; do
 	fi
 done
 
-if (( $nscd_processes_on_nscd_socket == 1 )); then
+if [ "$nscd_processes_on_nscd_socket" -eq 1 ]; then
 	state=$STATE_OK
 	get_state_string $state
 	echo "${STATE_STRING}: only one instance of nscd running."
 	exit $state
-elif (( $nscd_processes_on_nscd_socket > 1 )); then 
+elif [ "$nscd_processes_on_nscd_socket" -gt 1 ]; then
 	state=$STATE_WARNING
 	get_state_string $state
 	echo "${STATE_STRING}: more than one instance of nscd bound to nscd socket."
 	exit $state
-elif (( $nscd_processes_on_nscd_socket == 0 )); then
+elif [ "$nscd_processes_on_nscd_socket" -eq 0 ]; then
 	state=$STATE_CRITICAL
 	get_state_string $state
 	echo "${STATE_STRING}: no instance of nscd bound to nscd socket. nscd might have crashed."
