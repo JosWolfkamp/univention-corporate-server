@@ -90,6 +90,9 @@ if [ ! -S $nscd_socket ]; then
     state "$STATE_CRITICAL" "no nscd socket found! nscd not running?"
 fi
 
+timeout 3 nscd -g >/dev/null 2>/dev/null ||
+    state "$STATE_CRITICAL" "nscd not responding!"
+
 if ! pids_on_nscd_socket=$(fuser "$nscd_socket" 2>/dev/zero)
 then
 	fuser_error=$(fuser "$nscd_socket" 2>&1)
