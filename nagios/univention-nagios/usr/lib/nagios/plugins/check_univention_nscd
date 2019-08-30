@@ -68,23 +68,16 @@ print_help() {
     print_usage
 }
 
-while test -n "$1"; do
+while [ $# -ge 1 ]
+do
     case "$1" in
-        --help)
+        --help|-h)
             print_help
-            exit $STATE_OK
+            exit "$STATE_OK"
             ;;
-        -h)
-            print_help
-            exit $STATE_OK
-            ;;
-        --version)
+        --version|-V)
             print_revision
-            exit $STATE_OK
-            ;;
-        -V)
-            print_revision
-            exit $STATE_OK
+            exit "$STATE_OK"
             ;;
     esac
     shift
