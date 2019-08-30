@@ -120,7 +120,7 @@ for pid in $pids_on_nscd_socket; do
 	else
 		state=$STATE_CRITICAL
 		get_state_string $state
-		echo "${STATE_STRING}: Unknown program: \""$process_name"\" bound to nscd socket."
+		echo "${STATE_STRING}: Unknown program: \"$process_name\" bound to nscd socket."
 		exit $state
 	fi
 done
