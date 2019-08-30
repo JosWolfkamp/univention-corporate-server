@@ -29,8 +29,6 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
-#
-#
 
 VERSION="1.00"
 PROGNAME="${0##*/}"
@@ -86,9 +84,8 @@ done
 
 nscd_socket="/var/run/nscd/socket"
 
-if [ ! -S $nscd_socket ]; then
+[ -S $nscd_socket ] ||
     state "$STATE_CRITICAL" "no nscd socket found! nscd not running?"
-fi
 
 timeout 3 nscd -g >/dev/null 2>/dev/null ||
     state "$STATE_CRITICAL" "nscd not responding!"
