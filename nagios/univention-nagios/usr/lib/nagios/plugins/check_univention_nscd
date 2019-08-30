@@ -40,16 +40,17 @@ STATE_WARNING=1
 STATE_CRITICAL=2
 STATE_UNKNOWN=3
 
-get_state_string() {
-	if [ "$1" = "$STATE_OK" ] ; then
-		STATE_STRING="OK"
-	elif [ "$1" = "$STATE_WARNING" ] ; then
-		STATE_STRING="WARNING"
-	elif [ "$1" = "$STATE_CRITICAL" ] ; then
-		STATE_STRING="CRITICAL"
-	else
-		STATE_STRING="UNKNOWN"
-    fi
+state () {
+    local STATE="$1"
+    case "$STATE" in
+        "$STATE_OK") STATE_STRING="OK" ;;
+        "$STATE_WARNING") STATE_STRING="WARNING" ;;
+        "$STATE_CRITICAL") STATE_STRING="CRITICAL" ;;
+        *) STATE_STRING="UNKNOWN" ;;
+    esac
+    shift
+    echo "${STATE_STRING}: $*"
+    exit "$STATE"
 }
 
 print_revision() {
@@ -86,20 +87,14 @@ done
 nscd_socket="/var/run/nscd/socket"
 
 if [ ! -S $nscd_socket ]; then
-	state=$STATE_CRITICAL
-	get_state_string $state
-	echo "${STATE_STRING}: no nscd socket found! nscd not running?"
-	exit $state
+    state "$STATE_CRITICAL" "no nscd socket found! nscd not running?"
 fi
 
 if ! pids_on_nscd_socket=$(fuser "$nscd_socket" 2>/dev/zero)
 then
 	fuser_error=$(fuser "$nscd_socket" 2>&1)
 	if [ -n "$fuser_error" ]; then
-		state=$STATE_UNKNOWN
-		get_state_string $state
-		echo "${STATE_STRING}: fuser command failed"
-		exit $state
+		state "$STATE_UNKNOWN" "fuser command failed"
 	fi
 fi
 
@@ -111,31 +106,16 @@ for pid in $pids_on_nscd_socket; do
 	if [ "$process_name" = "nscd" ]; then
 		let nscd_processes_on_nscd_socket++
 	else
-		state=$STATE_CRITICAL
-		get_state_string $state
-		echo "${STATE_STRING}: Unknown program: \"$process_name\" bound to nscd socket."
-		exit $state
+		state "$STATE_CRITICAL" "Unknown program: \"$process_name\" bound to nscd socket."
 	fi
 done
 
 if [ "$nscd_processes_on_nscd_socket" -eq 1 ]; then
-	state=$STATE_OK
-	get_state_string $state
-	echo "${STATE_STRING}: only one instance of nscd running."
-	exit $state
+	state "$STATE_OK" "only one instance of nscd running."
 elif [ "$nscd_processes_on_nscd_socket" -gt 1 ]; then
-	state=$STATE_WARNING
-	get_state_string $state
-	echo "${STATE_STRING}: more than one instance of nscd bound to nscd socket."
-	exit $state
+	state "$STATE_WARNING" "more than one instance of nscd bound to nscd socket."
 elif [ "$nscd_processes_on_nscd_socket" -eq 0 ]; then
-	state=$STATE_CRITICAL
-	get_state_string $state
-	echo "${STATE_STRING}: no instance of nscd bound to nscd socket. nscd might have crashed."
-	exit $state
+	state "$STATE_CRITICAL" "no instance of nscd bound to nscd socket. nscd might have crashed."
 fi
 
-state=$STATE_CRITICAL
-get_state_string $state
-echo "${STATE_STRING}: PLUGIN FAILED"
-exit $state
+state "$STATE_CRITICAL" "PLUGIN FAILED"
