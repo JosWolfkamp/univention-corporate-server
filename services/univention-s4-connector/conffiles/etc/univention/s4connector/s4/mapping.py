@@ -381,6 +381,7 @@ s4_mapping = {
 				ucs_attribute='userCertificate',
 				ldap_attribute='userCertificate;binary',
 				con_attribute='userCertificate',
+				udm_option='pki',
 				single_value=True,
 			),
 			'secretary': univention.s4connector.attribute(

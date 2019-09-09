@@ -359,11 +359,12 @@ class configsaver:
 
 class attribute:
 
-	def __init__(self, ucs_attribute='', ldap_attribute='', con_attribute='', con_other_attribute='', required=0, single_value=False, compare_function=None, mapping=(), reverse_attribute_check=False, sync_mode='sync'):
+	def __init__(self, ucs_attribute='', ldap_attribute='', con_attribute='', con_other_attribute='', udm_option=None, required=0, single_value=False, compare_function=None, mapping=(), reverse_attribute_check=False, sync_mode='sync'):
 		self.ucs_attribute = ucs_attribute
 		self.ldap_attribute = ldap_attribute
 		self.con_attribute = con_attribute
 		self.con_other_attribute = con_other_attribute
+		self.udm_option = udm_option
 		self.required = required
 		# If no compare_function is given, we default to `compare_normal()`
 		self.compare_function = compare_function or compare_normal
@@ -1187,11 +1188,18 @@ class ucs:
 						# as the handling of `con_other_attribute` assumes preserved ordering
 						# (this is not guaranteed by LDAP).
 						# See the MODIFY-case in `sync_from_ucs()` for more.
+						ud.debug(ud.LDAP, ud.INFO, "set key in ucs-object %s to value: %s" % (ucs_key, value))
+						try:
+							if not attributes.udm_option in ucs_object.options:
+								ud.debug(ud.LDAP, ud.INFO, "set option in ucs-object %s to value: %s" % (ucs_key, attributes.udm_option))
+								ucs_object.options.append(attributes.udm_option)
+						except AttributeError:
+							pass
 						if isinstance(value, list):
 							ucs_object[ucs_key] = list(set(value))
 						else:
 							ucs_object[ucs_key] = value
-						ud.debug(ud.LDAP, ud.INFO, "set key in ucs-object: %s" % ucs_key)
+						ud.debug(ud.LDAP, ud.INFO, "result key in ucs-object %s: %s" % (ucs_key, ucs_object[ucs_key]))
 				else:
 					ud.debug(ud.LDAP, ud.INFO, '__set_values: no ucs_attribute found in %s' % attributes)
 			else:
