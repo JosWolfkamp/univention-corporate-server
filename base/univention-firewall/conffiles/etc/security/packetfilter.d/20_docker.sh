@@ -34,6 +34,7 @@ nat_core_rules() {
 	iptables --wait -L DOCKER -t nat > /dev/null 2> /dev/null || iptables --wait -N DOCKER -t nat
 	iptables --wait -L DOCKER-ISOLATION-STAGE-1 -t filter > /dev/null 2> /dev/null || iptables --wait -N DOCKER-ISOLATION-STAGE-1 -t filter
 	iptables --wait -L DOCKER-ISOLATION-STAGE-2 -t filter > /dev/null 2> /dev/null || iptables --wait -N DOCKER-ISOLATION-STAGE-2 -t filter
+	iptables --wait -L DOCKER-USER -t filter > /dev/null 2> /dev/null || iptables --wait -N DOCKER-USER -t filter
 
 	iptables --wait -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j DOCKER
 	iptables --wait -t nat -A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -j DOCKER
@@ -62,7 +63,9 @@ print '\tiptables --wait -A INPUT -s %s/%s -p tcp --dport %s -j ACCEPT  # allow 
 
 	iptables --wait -A DOCKER-ISOLATION-STAGE-1 -j RETURN
 	iptables --wait -A DOCKER-ISOLATION-STAGE-2 -j RETURN
+	iptables --wait -A DOCKER-USER -j RETURN
 	iptables --wait -I FORWARD -j DOCKER-ISOLATION-STAGE-1
+	iptables --wait -I FORWARD -j DOCKER-USER
 }
 
 nat_container_rule() {
