@@ -886,19 +886,19 @@ class s4(univention.s4connector.ucs):
 		except Exception:  # FIXME: which exception is to be caught?
 			return unicode(string, 'latin1')
 
+	@ud.trace()
 	def _get_lastUSN(self):
-		_d = ud.function('ldap._get_lastUSN')
 		return max(self.__lastUSN, int(self._get_config_option('S4', 'lastUSN')))
 
 	def get_lastUSN(self):
 		return self._get_lastUSN()
 
+	@ud.trace()
 	def _commit_lastUSN(self):
-		_d = ud.function('ldap._commit_lastUSN')
 		self._set_config_option('S4', 'lastUSN', str(self.__lastUSN))
 
+	@ud.trace()
 	def _set_lastUSN(self, lastUSN):
-		_d = ud.function('ldap._set_lastUSN')
 		ud.debug(ud.LDAP, ud.INFO, "_set_lastUSN: new lastUSN is: %s" % lastUSN)
 		self.__lastUSN = lastUSN
 
@@ -909,38 +909,38 @@ class s4(univention.s4connector.ucs):
 		else:
 			return GUID.encode('base64')
 
+	@ud.trace()
 	def _get_DN_for_GUID(self, GUID):
-		_d = ud.function('ldap._get_DN_for_GUID')
 		return self._decode_dn_from_config_option(self._get_config_option('S4 GUID', self.__encode_GUID(GUID)))
 
+	@ud.trace()
 	def _set_DN_for_GUID(self, GUID, DN):
-		_d = ud.function('ldap._set_DN_for_GUID')
 		self._set_config_option('S4 GUID', self.__encode_GUID(GUID), self._encode_dn_as_config_option(DN))
 
+	@ud.trace()
 	def _remove_GUID(self, GUID):
-		_d = ud.function('ldap._remove_GUID')
 		self._remove_config_option('S4 GUID', self.__encode_GUID(GUID))
 
 	# handle rejected Objects
+	@ud.trace()
 	def _save_rejected(self, id, dn):
-		_d = ud.function('ldap._save_rejected')
 		try:
 			self._set_config_option('S4 rejected', str(id), encode_attrib(dn))
 		except UnicodeEncodeError:
 			self._set_config_option('S4 rejected', str(id), 'unknown')
 			self._debug_traceback(ud.WARN, "failed to set dn in configfile (S4 rejected)")
 
+	@ud.trace()
 	def _get_rejected(self, id):
-		_d = ud.function('ldap._get_rejected')
 		return self._get_config_option('S4 rejected', str(id))
 
+	@ud.trace()
 	def _remove_rejected(self, id):
-		_d = ud.function('ldap._remove_rejected')
 		self._remove_config_option('S4 rejected', str(id))
 
+	@ud.trace()
 	def _list_rejected(self):
 		"""Returns rejected Samba4-objects"""
-		_d = ud.function('ldap._list_rejected')
 		result = []
 		for i in self._get_config_items('S4 rejected'):
 			result.append(i)
@@ -949,18 +949,18 @@ class s4(univention.s4connector.ucs):
 	def list_rejected(self):
 		return self._list_rejected()
 
+	@ud.trace()
 	def save_rejected(self, object):
 		"""
 		save object as rejected
 		"""
-		_d = ud.function('ldap.save_rejected')
 		self._save_rejected(self.__get_change_usn(object), object['dn'])
 
+	@ud.trace()
 	def remove_rejected(self, object):
 		"""
 		remove object from rejected
 		"""
-		_d = ud.function('ldap.remove_rejected')
 		self._remove_rejected(self.__get_change_usn(object), object['dn'])
 
 	def addToCreationList(self, dn):
@@ -973,8 +973,8 @@ class s4(univention.s4connector.ucs):
 	def isInCreationList(self, dn):
 		return dn.lower() in self.creation_list
 
+	@ud.trace()
 	def get_object_dn(self, dn):
-		_d = ud.function('ldap.get_object_dn')
 		for i in [0, 1]:  # do it twice if the LDAP connection was closed
 			try:
 				dn, s4_object = self.s4_search_ext_s(compatible_modstring(dn), ldap.SCOPE_BASE, '(objectClass=*)', ('dn',))[0]
@@ -1040,9 +1040,9 @@ class s4(univention.s4connector.ucs):
 			s4_attrs['member'] = s4_members
 		return s4_members
 
+	@ud.trace()
 	def get_object(self, dn, attrlist=None):
 		"""Get an object from S4-LDAP"""
-		_d = ud.function('ldap.get_object')
 		for i in [0, 1]:  # do it twice if the LDAP connection was closed
 			try:
 				dn, s4_object = self.s4_search_ext_s(compatible_modstring(dn), ldap.SCOPE_BASE, '(objectClass=*)', attrlist=attrlist)[0]
@@ -1058,11 +1058,11 @@ class s4(univention.s4connector.ucs):
 			except Exception:  # FIXME: which exception is to be caught?
 				self._debug_traceback(ud.ERROR, 'Could not get object')  # TODO: remove except block?
 
+	@ud.trace()
 	def __get_change_usn(self, object):
 		'''
 		get change usn as max(uSNCreated,uSNChanged)
 		'''
-		_d = ud.function('ldap.__get_change_usn')
 		if not object:
 			return 0
 		usnchanged = 0
@@ -1074,11 +1074,11 @@ class s4(univention.s4connector.ucs):
 
 		return max(usnchanged, usncreated)
 
+	@ud.trace()
 	def __search_s4_partitions(self, scope=ldap.SCOPE_SUBTREE, filter='', attrlist=[], show_deleted=False):
 		'''
 		search s4 across all partitions listed in self.s4_ldap_partitions
 		'''
-		_d = ud.function('ldap.__search_s4_partitions')
 		res = []
 		for base in self.s4_ldap_partitions:
 			res += self.__search_s4(base, scope, filter, attrlist, show_deleted)
@@ -1088,11 +1088,11 @@ class s4(univention.s4connector.ucs):
 	def __get_s4_deleted(self, dn):
 		return self.__search_s4(dn, scope=ldap.SCOPE_BASE, filter='(objectClass=*)', show_deleted=True)[0]
 
+	@ud.trace()
 	def __search_s4(self, base=None, scope=ldap.SCOPE_SUBTREE, filter='', attrlist=[], show_deleted=False):
 		'''
 		search s4
 		'''
-		_d = ud.function('ldap.__search_s4')
 
 		if not base:
 			base = self.lo_s4.base
@@ -1146,11 +1146,11 @@ class s4(univention.s4connector.ucs):
 			result.append(item)
 		return result
 
+	@ud.trace()
 	def __search_s4_changes(self, show_deleted=False, filter=''):
 		'''
 		search s4 for changes since last update (changes greater lastUSN)
 		'''
-		_d = ud.function('ldap.__search_s4_changes')
 		lastUSN = self._get_lastUSN()
 		# filter erweitern um "(|(uSNChanged>=lastUSN+1)(uSNCreated>=lastUSN+1))"
 		# +1 da suche nur nach '>=', nicht nach '>' möglich
@@ -1210,11 +1210,11 @@ class s4(univention.s4connector.ucs):
 
 		return returnObjects
 
+	@ud.trace()
 	def __search_s4_changeUSN(self, changeUSN, show_deleted=True, filter=''):
 		'''
 		search s4 for change with id
 		'''
-		_d = ud.function('ldap.__search_s4_changeUSN')
 
 		usn_filter = format_escaped('(|(uSNChanged={0!e})(uSNCreated={0!e}))', changeUSN)
 		if filter != '':
@@ -1222,11 +1222,11 @@ class s4(univention.s4connector.ucs):
 
 		return self.__search_s4_partitions(filter=usn_filter, show_deleted=show_deleted)
 
+	@ud.trace()
 	def __dn_from_deleted_object(self, object, GUID):
 		'''
 		gets dn for deleted object (original dn before the object was moved into the deleted objects container)
 		'''
-		_d = ud.function('ldap.__dn_from_deleted_object')
 
 		rdn = object['dn'].split('\\0ADEL:')[0]
 		last_known_parent = object['attributes'].get('lastKnownParent', [None])[0]
@@ -1244,6 +1244,7 @@ class s4(univention.s4connector.ucs):
 			ud.debug(ud.LDAP, ud.WARN, 'lastKnownParent attribute for deleted object rdn="%s" was not set, so we must ignore the object' % rdn)
 			return None
 
+	@ud.trace()
 	def __object_from_element(self, element):
 		"""
 		gets an object from an S4 LDAP-element, implements necessary mapping
@@ -1252,7 +1253,6 @@ class s4(univention.s4connector.ucs):
 			(dn, attributes) tuple from a search in S4-LDAP
 		:ptype element: tuple
 		"""
-		_d = ud.function('ldap.__object_from_element')
 		if element[0] == 'None' or element[0] is None:
 			return None  # referrals
 
@@ -1295,28 +1295,28 @@ class s4(univention.s4connector.ucs):
 				return None
 		return object
 
+	@ud.trace()
 	def __identify_s4_type(self, object):
 		"""Identify the type of the specified S4 object"""
-		_d = ud.function('ldap.__identify_s4_type')
 		if not object or 'attributes' not in object:
 			return None
 		for key in self.property.keys():
 			if self._filter_match(self.property[key].con_search_filter, object['attributes']):
 				return key
 
+	@ud.trace()
 	def __update_lastUSN(self, object):
 		"""
 		Update der lastUSN
 		"""
-		_d = ud.function('ldap.__update_lastUSN')
 		if self.__get_change_usn(object) > self._get_lastUSN():
 			self._set_lastUSN(self.__get_change_usn(object))
 
+	@ud.trace()
 	def __get_highestCommittedUSN(self):
 		'''
 		get highestCommittedUSN stored in S4
 		'''
-		_d = ud.function('ldap.__get_highestCommittedUSN')
 		try:
 			res = self.s4_search_ext_s(
 				'',  # base
@@ -1331,11 +1331,11 @@ class s4(univention.s4connector.ucs):
 			print("ERROR: initial search in S4 failed, check network and configuration")
 			return 0
 
+	@ud.trace()
 	def set_primary_group_to_ucs_user(self, object_key, object_ucs):
 		'''
 		check if correct primary group is set to a fresh UCS-User
 		'''
-		_d = ud.function('ldap.set_primary_group_to_ucs_user')
 
 		rid_filter = format_escaped("(samaccountname={0!e})", compatible_modstring(object_ucs['username']))
 		s4_group_rid_resultlist = self.__search_s4(base=self.lo_s4.base, scope=ldap.SCOPE_SUBTREE, filter=rid_filter, attrlist=['dn', 'primaryGroupID'])
@@ -1356,11 +1356,11 @@ class s4(univention.s4connector.ucs):
 
 			object_ucs['primaryGroup'] = ucs_group['dn']
 
+	@ud.trace()
 	def primary_group_sync_from_ucs(self, key, object):  # object mit s4-dn
 		'''
 		sync primary group of an ucs-object to s4
 		'''
-		_d = ud.function('ldap.primary_group_sync_from_ucs')
 
 		object_key = key
 		object_ucs = self._object_mapping(object_key, object)
@@ -1436,12 +1436,11 @@ class s4(univention.s4connector.ucs):
 
 			return True
 
+	@ud.trace()
 	def primary_group_sync_to_ucs(self, key, object):  # object mit ucs-dn
 		'''
 		sync primary group of an s4-object to ucs
 		'''
-		_d = ud.function('ldap.primary_group_sync_to_ucs')
-
 		object_key = key
 
 		s4_object = self._object_mapping(object_key, object, 'ucs')
@@ -1471,11 +1470,11 @@ class s4(univention.s4connector.ucs):
 		else:
 			ud.debug(ud.LDAP, ud.INFO, "primary_group_sync_to_ucs: change of primary Group in ucs not needed")
 
+	@ud.trace()
 	def object_memberships_sync_from_ucs(self, key, object):
 		"""
 		sync group membership in S4 if object was changend in UCS
 		"""
-		_d = ud.function('ldap.object_memberships_sync_from_ucs')
 		ud.debug(ud.LDAP, ud.INFO, "object_memberships_sync_from_ucs: object: %s" % object)
 
 		if 'group' in self.property:
@@ -1521,12 +1520,11 @@ class s4(univention.s4connector.ucs):
 		else:
 			members.append(member_lower)
 
+	@ud.trace()
 	def group_members_sync_from_ucs(self, key, object):  # object mit s4-dn
 		"""
 		sync groupmembers in S4 if changend in UCS
 		"""
-		_d = ud.function('ldap.group_members_sync_from_ucs')
-
 		ud.debug(ud.LDAP, ud.INFO, "group_members_sync_from_ucs: %s" % object)
 
 		object_key = key
@@ -1698,11 +1696,11 @@ class s4(univention.s4connector.ucs):
 
 		return True
 
+	@ud.trace()
 	def object_memberships_sync_to_ucs(self, key, object):
 		"""
 		sync group membership in UCS if object was changend in S4
 		"""
-		_d = ud.function('ldap.object_memberships_sync_to_ucs')
 		# disable this debug line, see Bug #12031
 		# ud.debug(ud.LDAP, ud.INFO, "object_memberships_sync_to_ucs: object: %s" % object)
 
@@ -1801,11 +1799,11 @@ class s4(univention.s4connector.ucs):
 		else:
 			members.append(member_lower)
 
+	@ud.trace()
 	def group_members_sync_to_ucs(self, key, object):
 		"""
 		sync groupmembers in UCS if changend in S4
 		"""
-		_d = ud.function('ldap.group_members_sync_to_ucs')
 		ud.debug(ud.LDAP, ud.INFO, "group_members_sync_to_ucs: object: %s" % object)
 
 		object_key = key
@@ -2058,8 +2056,8 @@ class s4(univention.s4connector.ucs):
 		if modified:
 			ucs_admin_object.modify()
 
+	@ud.trace()
 	def initialize(self):
-		_d = ud.function('ldap.initialize')
 		print("--------------------------------------")
 		print("Initialize sync from S4")
 		if self._get_lastUSN() == 0:  # we startup new
@@ -2068,7 +2066,7 @@ class s4(univention.s4connector.ucs):
 			highestCommittedUSN = self.__get_highestCommittedUSN()
 
 			# poll for all objects without deleted objects
-			polled = self.poll(show_deleted=False)
+			self.poll(show_deleted=False)
 
 			# compare highest USN from poll with highest before poll, if the last changes deletes
 			# the highest USN from poll is to low
@@ -2078,17 +2076,17 @@ class s4(univention.s4connector.ucs):
 			ud.debug(ud.LDAP, ud.INFO, "initialize S4: sync of all objects finished, lastUSN is %d", self.__get_highestCommittedUSN())
 		else:
 			self.resync_rejected()
-			polled = self.poll()
+			self.poll()
 			self._commit_lastUSN()
 		print("--------------------------------------")
 
+	@ud.trace()
 	def resync_rejected(self):
 		'''
 		tries to resync rejected dn
 		'''
 		print("--------------------------------------")
 
-		_d = ud.function('ldap.resync_rejected')
 		change_count = 0
 		rejected = self._list_rejected()
 		print("Sync %s rejected changes from S4 to UCS" % len(rejected))
@@ -2130,11 +2128,11 @@ class s4(univention.s4connector.ucs):
 		print("--------------------------------------")
 		sys.stdout.flush()
 
+	@ud.trace()
 	def poll(self, show_deleted=True):
 		'''
 		poll for changes in S4
 		'''
-		_d = ud.function('s4.poll')
 		# search from last_usn for changes
 		change_count = 0
 		changes = []
@@ -2281,9 +2279,9 @@ class s4(univention.s4connector.ucs):
 				ud.debug(ud.LDAP, ud.ALL, "sync_from_ucs: %s was not present in UCS group member mapping cache" % ucs_dn)
 				pass
 
+	@ud.trace()
 	def sync_from_ucs(self, property_type, object, pre_mapped_ucs_dn, old_dn=None, old_ucs_object=None, new_ucs_object=None):
 		# NOTE: pre_mapped_ucs_dn means: original ucs_dn (i.e. before _object_mapping)
-		_d = ud.function('ldap.__sync_from_ucs')
 		# Diese Methode erhaelt von der UCS Klasse ein Objekt,
 		# welches hier bearbeitet wird und in das S4 geschrieben wird.
 		# object ist brereits vom eingelesenen UCS-Objekt nach S4 gemappt, old_dn ist die alte UCS-DN
@@ -2636,8 +2634,8 @@ class s4(univention.s4connector.ucs):
 			ud.debug(ud.LDAP, ud.WARN, "Failed to search objectGUID for %s" % dn)
 		return objectGUID
 
+	@ud.trace()
 	def delete_in_s4(self, object, property_type):
-		_d = ud.function('ldap.delete_in_s4')
 		ud.debug(ud.LDAP, ud.ALL, "delete: %s" % object['dn'])
 		ud.debug(ud.LDAP, ud.ALL, "delete_in_s4: %s" % object)
 		try:
