@@ -2670,6 +2670,7 @@ class s4(univention.s4connector.ucs):
 						ud.debug(ud.LDAP, ud.WARN, "delete of subobject failed: %r" % (result[0],))
 						return False
 
+			# FIXME: endless recurstion if there is one subtree-object which is ignored or can't be removed.
 			return self.delete_in_s4(object, property_type)
 
 		entryUUID = object.get('attributes').get('entryUUID', [None])[0]
