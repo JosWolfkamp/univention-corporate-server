@@ -178,8 +178,12 @@ download_host_certificate () {
 		univention-scp "$HOSTPWD" -q -r \
 			"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/$hostname" \
 			"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/$hostname.$domainname" \
+			"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/\*$hostname" \
+			"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/\*$hostname.$domainname" \
 			/etc/univention/ssl/ >>/var/log/univention/join.log 2>&1
-		[ -d "/etc/univention/ssl/$hostname" ] && [ -d "/etc/univention/ssl/$hostname.$domainname" ] && break
+		[ -d "/etc/univention/ssl/$hostname" ] && [ -d "/etc/univention/ssl/$hostname.$domainname" ] \
+			&& [ -d "/etc/univention/ssl/\*$hostname" ] && [ -d "/etc/univention/ssl/\*$hostname.$domainname" ] \
+			&& break
 
 		if [ $counter -gt 30 ] && [ ! -d "/etc/univention/ssl/$hostname" ] &&  [ ! -d "/etc/univention/ssl/$hostname.$domainname" ]; then
 			echo "failed to get host certificate"
