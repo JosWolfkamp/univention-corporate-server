@@ -190,17 +190,17 @@ Description[en]=The paths listed in this variable will be excluded from being in
 Type=str
 Categories=service-apache
 
-[apache2/vhosts/.*/port]
-Type=int
+[apache2/vhosts/.*/enabled]
+Type=bool
 Description[de]=TODO
 Description[en]=TODO
 
-[apache2/vhosts/.*/file]
+[apache2/vhosts/.*/files]
 Type=str
 Description[de]=Comma-seperated list of files with apache configs
 Description[en]=Comma-seperated list of files with apache configs
 
-[apache2/vhosts/.*/subdomain]
+[apache2/vhosts/.*/aliases]
 Type=str
 Description[de]=TODO
 Description[en]=TODO
