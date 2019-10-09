@@ -235,6 +235,18 @@ elif [ "$server_role" != "basesystem" ]; then # download certificate from master
 				break
 			fi
 		done
+		# again for wildcard
+		univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/\*.$new_hostname.$domainname /etc/univention/ssl/"
+		while [ ! -d "/etc/univention/ssl/\*.$new_hostname" ] &&  [ ! -d "/etc/univention/ssl/\*.$new_hostname.$domainname" ]; do
+			i=$((i+1))
+			echo `date` : "Download host certificate (try: $i)"  >> /var/log/univention/setup.log
+			sleep 10
+			univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/\*.$new_hostname.$domainname /etc/univention/ssl/"
+			if [ "$i" -gt 30 ]; then
+				echo `date` : "Failed to download the host certificate"  >> /var/log/univention/setup.log
+				break
+			fi
+		done
 	else
 		echo `date` : "Couldn't download host certificate, univention-scp was not found"  >> /var/log/univention/setup.log
 	fi
