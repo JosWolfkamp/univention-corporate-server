@@ -102,12 +102,14 @@ def main(app, fqdn, port, aliases, binddn, bindpwdfile, remove):
 			with click.open_file(bindpwdfile, "r") as fp:
 				password = fp.read().strip()
 		else:
-			password  = click.prompt("Password for '{}':".format(binddn)).strip()
+			password  = click.prompt("Password for '{}':".format(binddn), hide_input=True).strip()
 
 	if not binddn:
 		udm = UDM.admin().version(1)
 	else:
-		udm = UDM.credentials(binddn, password).version(1)
+		server = ucr()["ldap/master"]
+		port = ucr()["ldap/master/port"]
+		udm = UDM.credentials(binddn, password, server=server, port=port).version(1)
 
 	for host in [fqdn] + list(aliases):
 		if remove:
