@@ -123,6 +123,7 @@ def main(app, fqdn, port, aliases, binddn, bindpwdfile, remove):
 
 	click.echo(click.style("Please now reload the DNS and the web servers:", bold=True))
 	click.echo(click.style("$ service apache2 reload", bold=True))
+	click.echo(click.style("$ nscd -i hosts", bold=True))
 	click.echo(click.style("$ service bind9 reload", bold=True))
 
 
