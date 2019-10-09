@@ -197,8 +197,8 @@ Description[en]=TODO
 
 [apache2/vhosts/.*/file]
 Type=str
-Description[de]=TODO
-Description[en]=TODO
+Description[de]=Comma-seperated list of files with apache configs
+Description[en]=Comma-seperated list of files with apache configs
 
 [apache2/vhosts/.*/subdomain]
 Type=str
