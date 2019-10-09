@@ -204,7 +204,7 @@ if [ "$server_role" = "domaincontroller_master" ]; then  # create the new certif
 	rm -f /etc/univention/ssl/univention-directory-manager
 	ln -sf /etc/univention/ssl/univention-directory-manager.$new_domainname /etc/univention/ssl/univention-directory-manager
 elif [ "$server_role" != "basesystem" ]; then # download certificate from master
-	/usr/sbin/univention-fetch-certificates "$new_hostname" "$ldap_master" >> /var/log/univention/setup.log
+	/usr/sbin/univention-fetch-certificates "$hostname" "$ldap_master" >> /var/log/univention/setup.log
 fi
 
 if [ "$server_role" != "basesystem" ]; then

@@ -170,7 +170,7 @@ setup_ssl () {
 download_host_certificate () {
 	echo -n "Download host certificate: "
 
-	/usr/sbin/univention-fetch-certificates "$hostname" "$DCNAME" || failed_message "failed to get host certificate"
+	/usr/sbin/univention-fetch-certificates "$hostname" "$DCNAME" >>/var/log/univention/join.log || failed_message "failed to get host certificate"
 
 	echo -e "\033[60Gdone"
 }

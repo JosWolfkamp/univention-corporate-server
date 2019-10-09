@@ -50,7 +50,7 @@ do
 		"$hostaccount@$dcname:/etc/univention/ssl/$hostname.$domainname" \
 		"$hostaccount@$dcname:/etc/univention/ssl/\*.$hostname" \
 		"$hostaccount@$dcname:/etc/univention/ssl/\*.$hostname.$domainname" \
-		/etc/univention/ssl/ >>/var/log/univention/join.log 2>&1
+		/etc/univention/ssl/ 2>&1
 	[ -d "/etc/univention/ssl/$hostname" ] && [ -d "/etc/univention/ssl/$hostname.$domainname" ] \
 		&& [ -d "/etc/univention/ssl/*.$hostname" ] && [ -d "/etc/univention/ssl/*.$hostname.$domainname" ] \
 		&& break
