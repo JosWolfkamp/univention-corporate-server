@@ -1,3 +1,9 @@
+univention-ssl (13.0.0-3) unstable; urgency=medium
+
+  * Bug #45115: Create wildcard certificate
+
+ -- Dirk Wiesenthal <wiesenthal@univention.de>  Wed, 09 Oct 2019 12:43:01 +0200
+
 univention-ssl (13.0.0-2) unstable; urgency=medium
 
   * Bug #48698: Fix user visible spelling errors
