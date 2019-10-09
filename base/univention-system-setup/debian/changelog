@@ -1,6 +1,7 @@
 univention-system-setup (12.0.2-15) unstable; urgency=medium
 
   * Bug #45115: Copy wildcard certificates
+  * Bug #45115: In hostname and domainname
 
  -- Dirk Wiesenthal <wiesenthal@univention.de>  Wed, 09 Oct 2019 13:53:14 +0200
 
