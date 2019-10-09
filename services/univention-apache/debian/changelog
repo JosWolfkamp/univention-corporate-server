@@ -1,3 +1,9 @@
+univention-apache (11.0.1-2) unstable; urgency=medium
+
+  * Bug #45115: new feature: custom vhosts
+
+ -- Jannik Ahlers <ahlers@univention.de>  Wed, 09 Oct 2019 12:03:36 +0200
+
 univention-apache (11.0.1-1) unstable; urgency=medium
 
   * Bug #46969: bindpwdfile support

@@ -189,3 +189,13 @@ Description[de]=Die in dieser Variable aufgelisteten Pfade werden in die robots.
 Description[en]=The paths listed in this variable will be excluded from being indexed by search engines and similar services that evaluate robots.txt. Multiple paths are separated by a whitespace character.
 Type=str
 Categories=service-apache
+
+[apache2/vhosts/.*/file]
+Type=str
+Description[de]=TODO
+Description[en]=TODO
+
+[apache2/vhosts/.*/subdomain]
+Type=str
+Description[de]=TODO
+Description[en]=TODO
