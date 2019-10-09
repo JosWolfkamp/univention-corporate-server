@@ -34,30 +34,30 @@ if [ ! -x "/usr/sbin/univention-scp" ]; then
 	exit 1
 fi
 
-HOSTNAME="$1"
-DCNAME="$2"
-DOMAINNAME="$(ucr get domainname)"
+hostname="$1"
+dcname="$2"
+domainname="$(ucr get domainname)"
 
 echo -n "Download host certificate: "
-HOSTPWD="/etc/machine.secret"
-HOSTACCOUNT="$HOSTNAME\$"
+hostpwd="/etc/machine.secret"
+hostaccount="$hostname\$"
 counter=0
 while true
 do
 	counter=$((counter+1))
-	univention-scp "$HOSTPWD" -q -r \
-		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/$HOSTNAME" \
-		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/$HOSTNAME.$DOMAINNAME" \
-		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/\*.$HOSTNAME" \
-		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/\*.$HOSTNAME.$DOMAINNAME" \
+	univention-scp "$hostpwd" -q -r \
+		"$hostaccount@$dcname:/etc/univention/ssl/$hostname" \
+		"$hostaccount@$dcname:/etc/univention/ssl/$hostname.$domainname" \
+		"$hostaccount@$dcname:/etc/univention/ssl/\*.$hostname" \
+		"$hostaccount@$dcname:/etc/univention/ssl/\*.$hostname.$domainname" \
 		/etc/univention/ssl/ >>/var/log/univention/join.log 2>&1
-	[ -d "/etc/univention/ssl/$HOSTNAME" ] && [ -d "/etc/univention/ssl/$HOSTNAME.$DOMAINNAME" ] \
-		&& [ -d "/etc/univention/ssl/*.$HOSTNAME" ] && [ -d "/etc/univention/ssl/*.$HOSTNAME.$DOMAINNAME" ] \
+	[ -d "/etc/univention/ssl/$hostname" ] && [ -d "/etc/univention/ssl/$hostname.$domainname" ] \
+		&& [ -d "/etc/univention/ssl/*.$hostname" ] && [ -d "/etc/univention/ssl/*.$hostname.$domainname" ] \
 		&& break
 
 	if [ $counter -gt 30 ] \
-		&& [ ! -d "/etc/univention/ssl/$HOSTNAME" ] && [ ! -d "/etc/univention/ssl/$HOSTNAME.$DOMAINNAME" ] \
-		&& [ -d "/etc/univention/ssl/*.$HOSTNAME" ] && [ -d "/etc/univention/ssl/*.$HOSTNAME.$DOMAINNAME" ]; then
+		&& [ ! -d "/etc/univention/ssl/$hostname" ] && [ ! -d "/etc/univention/ssl/$hostname.$domainname" ] \
+		&& [ -d "/etc/univention/ssl/*.$hostname" ] && [ -d "/etc/univention/ssl/*.$hostname.$domainname" ]; then
 		echo "failed to get host certificate"
 		exit 1
 	fi
