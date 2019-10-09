@@ -212,13 +212,17 @@ def set_ucr_vars(appid, fqdn, port, aliases=None, path=None):
 		if key.startswith(ns):
 			click.echo(click.style("UCR values for '{}' exist. Not setting UCR values.".format(ns), fg="yellow"))
 			return
+	certificate = "/etc/univention/ssl/*.{}.{}/cert.pem".format(ucr()["hostname"], ucr()["domainname"])
+	private_key = "/etc/univention/ssl/*.{}.{}/private.key".format(ucr()["hostname"], ucr()["domainname"])
+	if not os.path.exists(private_key) or not os.path.exists(certificate):
+		click.echo(click.style("Certificate files {} or {} do not exist. The certificate should have been created on a fully updated DC Master. Please run /usr/sbin/univention-fetch-certificates $(ucr get hostname) $(ucr get ldap/master)".format(private_key, certificate), fg="red"))
+		return
 	ucrvs.extend([
 		"{}/enabled=true".format(ns),
 		"{}/files={}".format(ns, path),
 		"{}/aliases={}".format(ns, ",".join(aliases or [])),
-		"{}/ssl/certificate=/etc/univention/ssl/*.{}.{}/cert.pem".format(
-			ns, ucr()["hostname"], ucr()["domainname"]),
-		"{}/ssl/key=/etc/univention/ssl/*.{}.{}/private.key".format(ns, ucr()["hostname"], ucr()["domainname"]),
+		"{}/ssl/certificate={}".format(ns, certificate),
+		"{}/ssl/key={}".format(ns, private_key),
 		"{}/ssl/ca=/etc/univention/ssl/ucsCA/CAcert.pem".format(ns),
 	])
 	handler_set(ucrvs)
