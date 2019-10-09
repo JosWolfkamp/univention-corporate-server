@@ -193,7 +193,7 @@ Categories=service-apache
 [apache2/vhosts/.*/enabled]
 Type=bool
 Description[de]=Basis-Variable, die steuert, ob ein VHost für Apache angelegt wird. Der Name der Variablen steuert gleichzeitig auch einen Teil des Eintrags: apache2/vhosts/my-vhosts/myvhost.mydomain.intranet/443/enabled legt einen VHost mit ServerName myvhost.mydomain.intranet und Port 443 an. Der erste Teil (my-vhosts) dient der Identifikation und groben Gruppierung. Zusammen bilden den Schlüssel, über den der Eintrag weiter angepasst werden kann.
-Description[en]=Base variable to decide whether the VHost will be added to Apache. The name of the variable also controls a part of the entry: apache2/vhosts/my-vhosts/myvhost.mydomain.intranet/443/enabled will add a VHost with ServerName myvhost.mydomain.intranet and port 443. The first part (my-vhosts) is used for identification and a principal grouping. Together, they form the key to further customize the entry.
+Description[en]=Base variable to decide whether the VHost will be added to Apache. The name of the variable also controls a part of the entry: apache2/vhosts/my-vhosts/myvhost.mydomain.intranet/443/enabled will add a VHost with ServerName myvhost.mydomain.intranet and port 443. The first part (my-vhosts) is used for identification and basic grouping. Together, they form the key to further customize the entry.
 
 [apache2/vhosts/.*/files]
 Type=str
