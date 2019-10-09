@@ -1,3 +1,9 @@
+univention-ssl (13.0.0-4) unstable; urgency=medium
+
+  * Bug #45115: Create new certificates on update
+
+ -- Dirk Wiesenthal <wiesenthal@univention.de>  Wed, 09 Oct 2019 17:16:04 +0200
+
 univention-ssl (13.0.0-3) unstable; urgency=medium
 
   * Bug #45115: Create wildcard certificate
