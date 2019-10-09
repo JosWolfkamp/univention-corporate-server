@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+import os
+import sys
+try:
+	from typing import List, Optional
+except ImportError:
+	pass
+import click
+from ldap.dn import escape_dn_chars
+from univention.config_registry import ConfigRegistry, handler_set
+from univention.udm import NoObject, UDM
+from univention.udm.base import BaseModule, BaseObject
+
+
+APPCENTER_APACHE_CONF = "/var/lib/univention-appcenter/apps/{appid}/conf/apache.conf"
+
+
+@click.command()
+@click.argument("app")
+@click.argument("fqdn")
+@click.argument("port")
+@click.option("--aliases", multiple=True, help="Additional FQDNs (comma separated) for this vhost entry.")
+def main(app, fqdn, port, aliases):  # type: (str, str, int, List[str]) -> None
+	"""
+	Create an Apache vhost entry (and DNS alias) for the app APP with hostname
+	FQDN on port PORT.
+
+	APP: 'appid' of the app for which to create a vhost entry.
+
+	FQDN: Fully qualified domain name the vhost should be created for.
+
+	PORT: Port, usually 80 or 443.
+	"""
+	if not os.geteuid() == 0:
+		click.echo(click.style("This script must be executed as root.", fg="red"), err=True)
+		sys.exit(1)
+	create_dns_entry(fqdn)
+	set_ucr_vars(app, fqdn, port, aliases)
+
+
+def create_dns_entry(fqdn, alias_target=None):  # type: (str, Optional[str]) -> Optional[BaseObject]
+	click.echo("Creating DNS alias...")
+	# find best matching superordinate
+	udm = UDM.admin().version(1)
+	dns_alias_mod = udm.get("dns/alias")  # type: BaseModule
+	dns_forward_zone_mod = udm.get("dns/forward_zone")  # type: BaseModule
+	cmp = lambda x, y: (x > y) - (x < y)  # py2/3 compatibility
+	known_zones = sorted(
+		dns_forward_zone_mod.search(),
+		cmp=lambda x, y: cmp(len(x.props.zone), len(y.props.zone)),
+		reverse=True
+	)  # type: List[BaseObject]
+	for zone in known_zones:
+		if fqdn.endswith(zone.props.zone):
+			superordinate = zone
+			break
+	else:
+		click.echo(click.style("FQDN is not part of any of the hosted DNS zones. Not creating an alias.", fg="yellow"))
+		return
+	alias_name = fqdn.replace(superordinate.props.zone, "").rstrip(".")
+	# check for existing dns/alias or dns/host
+	obj_dn = "relativeDomainName={},{}".format(escape_dn_chars(alias_name), superordinate.dn)
+	try:
+		udm.obj_by_dn(obj_dn)
+		click.echo(click.style("Alias/Host {!r} exists.".format(fqdn), fg="green"))
+		return
+	except NoObject:
+		pass
+	if not alias_target:
+		ucr = ConfigRegistry()
+		ucr.load()
+		alias_target = "{hostname}.{domainname}".format(**ucr)
+	alias_obj = dns_alias_mod.new(superordinate=superordinate)  # type: BaseObject
+	alias_obj.props.name = alias_name
+	alias_obj.props.cname = alias_target
+	alias_obj.save()
+	click.echo(click.style("Created DNS alias {!r} -> {!r}.".format(fqdn, alias_target), fg="green"))
+	return alias_obj
+
+
+def set_ucr_vars(appid, fqdn, port, aliases=None, path=None):
+	# type: (str, str, int, Optional[List[str]], Optional[str]) -> None
+	click.echo("Setting UCR variables for Apache vhost configuration...")
+	if not path:
+		path = APPCENTER_APACHE_CONF.format(appid=appid)
+	ucrvs = []
+	ns = "apache2/vhosts/{}/{}/{}".format(appid, fqdn, port)
+	ucrvs.extend([
+		"{}/file={}".format(ns, path),
+		"{}/aliases={}".format(ns, ",".join(aliases or [])),
+		"{}/ssl/certificate=/etc/univention/ssl/{}/cert.pem".format(ns, fqdn),
+		"{}/ssl/key=/etc/univention/ssl/{}/private.key".format(ns, fqdn),
+		"{}/ssl/ca=/etc/univention/ssl/ucsCA/CAcert.pem".format(ns),
+	])
+	handler_set(ucrvs)
+	click.echo(click.style("Done setting UCR variables.", fg="green"))
+
+
+if __name__ == '__main__':
+	main()
