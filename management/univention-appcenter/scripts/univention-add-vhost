@@ -1,9 +1,6 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 #
-# Univention App Center
-#  univention-add-vhost
-#
 # Copyright 2019 Univention GmbH
 #
 # https://www.univention.de/
@@ -32,20 +29,35 @@
 # <https://www.gnu.org/licenses/>.
 #
 
+"""
+Univention App Center - manage DNS aliases and UCRVs for apps
+"""
+
 import os
 import sys
 try:
-	from typing import List, Optional
+	from typing import TextIO, List, Optional, Text
 except ImportError:
 	pass
 import click
 from ldap.dn import escape_dn_chars
-from univention.config_registry import ConfigRegistry, handler_set
+from ldap.filter import filter_format
+from univention.config_registry import ConfigRegistry, handler_set, handler_unset
 from univention.udm import NoObject, UDM
 from univention.udm.base import BaseModule, BaseObject
 
 
 APPCENTER_APACHE_CONF = "/var/lib/univention-appcenter/apps/{appid}/conf/apache.conf"
+_forward_zones = None
+_ucr = None
+
+
+def ucr():
+	global _ucr
+	if not _ucr:
+		_ucr = ConfigRegistry()
+		_ucr.load()
+	return _ucr
 
 
 @click.command()
@@ -53,7 +65,11 @@ APPCENTER_APACHE_CONF = "/var/lib/univention-appcenter/apps/{appid}/conf/apache.
 @click.argument("fqdn")
 @click.argument("port")
 @click.option("--aliases", multiple=True, help="Additional FQDNs (comma separated) for this vhost entry.")
-def main(app, fqdn, port, aliases):  # type: (str, str, int, List[str]) -> None
+@click.option('--binddn', help="DN of account to use to write to LDAP (e.g. uid=Administrator,cn=users,..).")
+@click.option('--bindpwdfile', help="File containing password of user provided by --binddn.")
+@click.option("--remove", is_flag=True, help="Remove previously created aliases and UCR variables.")
+def main(app, fqdn, port, aliases, binddn, bindpwdfile, remove):
+	# type: (str, str, int, List[str], str, str, bool) -> None
 	"""
 	Create an Apache vhost entry (and DNS alias) for the app APP with hostname
 	FQDN on port PORT.
@@ -67,48 +83,115 @@ def main(app, fqdn, port, aliases):  # type: (str, str, int, List[str]) -> None
 	if not os.geteuid() == 0:
 		click.echo(click.style("This script must be executed as root.", fg="red"), err=True)
 		sys.exit(1)
-	create_dns_entry(fqdn)
-	set_ucr_vars(app, fqdn, port, aliases)
+	if ucr()["server/role"] in ("domaincontroller_master", "domaincontroller_backup"):
+		binddn = password = None
+	else:
+		if not binddn:
+			username = click.prompt("Username to use for LDAP connection:").strip()
+			mod = UDM.machine().version(1).get("users/user")
+			for obj in mod.search(filter_format("uid=%s", (username,))):
+				binddn = obj.dn
+				break
+			else:
+				click.echo(
+					click.style("Cannot find DN for username '{}'.".format(username), fg="red"),
+					err=True
+				)
+				sys.exit(1)
+		if bindpwdfile:
+			with click.open_file(bindpwdfile, "r") as fp:
+				password = fp.read().strip()
+		else:
+			password  = click.prompt("Password for '{}':".format(binddn)).strip()
+
+	if not binddn:
+		udm = UDM.admin().version(1)
+	else:
+		udm = UDM.credentials(binddn, password).version(1)
+
+	for host in [fqdn] + list(aliases):
+		if remove:
+			remove_dns_entry(udm, host)
+		else:
+			create_dns_entry(udm, host)
+	if remove:
+		unset_ucr_vars(app, fqdn, port)
+	else:
+		set_ucr_vars(app, fqdn, port, aliases)
 
 
-def create_dns_entry(fqdn, alias_target=None):  # type: (str, Optional[str]) -> Optional[BaseObject]
-	click.echo("Creating DNS alias...")
-	# find best matching superordinate
-	udm = UDM.admin().version(1)
-	dns_alias_mod = udm.get("dns/alias")  # type: BaseModule
-	dns_forward_zone_mod = udm.get("dns/forward_zone")  # type: BaseModule
-	cmp = lambda x, y: (x > y) - (x < y)  # py2/3 compatibility
-	known_zones = sorted(
-		dns_forward_zone_mod.search(),
-		cmp=lambda x, y: cmp(len(x.props.zone), len(y.props.zone)),
-		reverse=True
-	)  # type: List[BaseObject]
+def forward_zones(udm):  # type: (UDM) -> List[BaseObject]
+	global _forward_zones
+	if not _forward_zones:
+		dns_forward_zone_mod = udm.get("dns/forward_zone")  # type: BaseModule
+		cmp23 = lambda x, y: (x > y) - (x < y)  # py2/3 compatibility
+		_forward_zones = sorted(
+			dns_forward_zone_mod.search(),
+			cmp=lambda x, y: cmp23(len(x.props.zone), len(y.props.zone)),
+			reverse=True
+		)
+	return _forward_zones
+
+
+def superordinate_of_fqdn(udm, fqdn):  # type: (UDM, str) -> Optional[BaseObject]
+	known_zones = forward_zones(udm)
 	for zone in known_zones:
 		if fqdn.endswith(zone.props.zone):
-			superordinate = zone
-			break
-	else:
-		click.echo(click.style("FQDN is not part of any of the hosted DNS zones. Not creating an alias.", fg="yellow"))
+			return zone
+
+
+def host_obj(udm, hostname, superordinate):  # type: (UDM, str, BaseObject) -> Optional[BaseObject]
+	obj_dn = "relativeDomainName={},{}".format(escape_dn_chars(hostname), superordinate.dn)
+	try:
+		return udm.obj_by_dn(obj_dn)
+	except NoObject:
+		pass
+
+
+def create_dns_entry(udm, fqdn, alias_target=None):  # type: (UDM, str, Optional[str]) -> Optional[BaseObject]
+	click.echo("Creating DNS alias for '{}'...".format(fqdn))
+	dns_alias_mod = udm.get("dns/alias")  # type: BaseModule
+	superordinate = superordinate_of_fqdn(udm, fqdn)
+	if not superordinate:
+		click.echo(click.style(
+			"'{}' is not part of any of the hosted DNS zones. Not creating an alias.".format(fqdn),
+			fg="yellow"))
 		return
 	alias_name = fqdn.replace(superordinate.props.zone, "").rstrip(".")
 	# check for existing dns/alias or dns/host
-	obj_dn = "relativeDomainName={},{}".format(escape_dn_chars(alias_name), superordinate.dn)
-	try:
-		udm.obj_by_dn(obj_dn)
-		click.echo(click.style("Alias/Host {!r} exists.".format(fqdn), fg="green"))
+	if host_obj(udm, alias_name, superordinate):
+		click.echo(click.style("Alias/Host '{}' exists.".format(fqdn), fg="green"))
 		return
-	except NoObject:
-		pass
 	if not alias_target:
-		ucr = ConfigRegistry()
-		ucr.load()
-		alias_target = "{hostname}.{domainname}".format(**ucr)
+		alias_target = "{hostname}.{domainname}".format(**ucr())
 	alias_obj = dns_alias_mod.new(superordinate=superordinate)  # type: BaseObject
 	alias_obj.props.name = alias_name
 	alias_obj.props.cname = alias_target
 	alias_obj.save()
-	click.echo(click.style("Created DNS alias {!r} -> {!r}.".format(fqdn, alias_target), fg="green"))
+	click.echo(click.style("Created DNS alias '{}' -> '{}'.".format(fqdn, alias_target), fg="green"))
 	return alias_obj
+
+
+def remove_dns_entry(udm, fqdn):  # type: (UDM, str) -> None
+	click.echo("Deleting DNS alias for '{}'...".format(fqdn))
+	superordinate = superordinate_of_fqdn(udm, fqdn)
+	if not superordinate:
+		click.echo(click.style("'{}' is not part of any of the hosted DNS zones.".format(fqdn), fg="yellow"))
+		return
+	alias_name = fqdn.replace(superordinate.props.zone, "").rstrip(".")
+	obj = host_obj(udm, alias_name, superordinate)
+	if not obj:
+		click.echo(click.style("Alias '{}' does not exit (anymore).".format(fqdn), fg="yellow"))
+		return
+	udm_module = obj._udm_module.name
+	if udm_module == "dns/alias":
+		obj.delete()
+		click.echo(click.style("Deleted DNS alias '{}'.".format(fqdn), fg="green"))
+	else:
+		click.echo(click.style(
+			"Not deleting '{}': it is not an alias, but of type '{}'!".format(fqdn, udm_module),
+			fg="red")
+		)
 
 
 def set_ucr_vars(appid, fqdn, port, aliases=None, path=None):
@@ -118,7 +201,12 @@ def set_ucr_vars(appid, fqdn, port, aliases=None, path=None):
 		path = APPCENTER_APACHE_CONF.format(appid=appid)
 	ucrvs = []
 	ns = "apache2/vhosts/{}/{}/{}".format(appid, fqdn, port)
+	for key in ucr().keys():
+		if key.startswith(ns):
+			click.echo(click.style("UCR values for '{}' exist. Not setting UCR values.".format(ns), fg="yellow"))
+			return
 	ucrvs.extend([
+		"{}/enabled=true".format(ns),
 		"{}/file={}".format(ns, path),
 		"{}/aliases={}".format(ns, ",".join(aliases or [])),
 		"{}/ssl/certificate=/etc/univention/ssl/{}/cert.pem".format(ns, fqdn),
@@ -127,6 +215,14 @@ def set_ucr_vars(appid, fqdn, port, aliases=None, path=None):
 	])
 	handler_set(ucrvs)
 	click.echo(click.style("Done setting UCR variables.", fg="green"))
+
+
+def unset_ucr_vars(appid, fqdn, port):
+	click.echo("Unsetting UCR variables...")
+	ns = "apache2/vhosts/{}/{}/{}".format(appid, fqdn, port)
+	ucrvs = [key for key in ucr().keys() if key.startswith(ns)]
+	handler_unset(ucrvs)
+	click.echo(click.style("Done unsetting UCR variables.", fg="green"))
 
 
 if __name__ == '__main__':
