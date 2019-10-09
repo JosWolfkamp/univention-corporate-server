@@ -208,6 +208,7 @@ elif [ "$server_role" != "basesystem" ]; then # download certificate from master
 		echo `date` : "Download host certificate"  >> /var/log/univention/setup.log
 		HOSTPWD="/etc/machine.secret"
 		HOSTACCOUNT="$hostname\$"
+
 		i=0
 		univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/$hostname.$new_domainname /etc/univention/ssl/"
 		while [ ! -d "/etc/univention/ssl/$hostname" ] &&  [ ! -d "/etc/univention/ssl/$hostname.$new_domainname" ]; do
@@ -215,6 +216,18 @@ elif [ "$server_role" != "basesystem" ]; then # download certificate from master
 			echo `date` : "Download host certificate (try: $i)"  >> /var/log/univention/setup.log
 			sleep 10
 			univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/$hostname.$new_domainname /etc/univention/ssl/"
+			if [ "$i" -gt 30 ]; then
+				echo `date` : "Failed to download the host certificate"  >> /var/log/univention/setup.log
+				break
+			fi
+		done
+		# again for wildcard
+		univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/\*$hostname.$new_domainname /etc/univention/ssl/"
+		while [ ! -d "/etc/univention/ssl/\*$hostname" ] &&  [ ! -d "/etc/univention/ssl/\*$hostname.$new_domainname" ]; do
+			i=$((i+1))
+			echo `date` : "Download host certificate (try: $i)"  >> /var/log/univention/setup.log
+			sleep 10
+			univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/\*$hostname.$new_domainname /etc/univention/ssl/"
 			if [ "$i" -gt 30 ]; then
 				echo `date` : "Failed to download the host certificate"  >> /var/log/univention/setup.log
 				break
