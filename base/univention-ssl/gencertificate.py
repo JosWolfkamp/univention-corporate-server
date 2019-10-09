@@ -82,12 +82,14 @@ def handler(dn, new, old, command=''):
 		if new and not old:
 			# changeType: add
 			create_certificate(new['cn'][0], domain(new))
+			create_certificate('*.%s' % new['cn'][0], domain(new))
 		elif old and not new:
 			# changeType: delete
 			if 'r' == command:
 				_delay = (dn, old)
 			else:
 				remove_certificate(old['cn'][0], domainname=domain(old))
+				remove_certificate('*.%s' % old['cn'][0], domainname=domain(old))
 		elif old and new:
 			# changeType: modify
 			old_domain = domain(old)
@@ -95,10 +97,15 @@ def handler(dn, new, old, command=''):
 
 			if new_domain != old_domain:
 				remove_certificate(old['cn'][0], old_domain)
+				remove_certificate('*.%s' % old['cn'][0], old_domain)
 				create_certificate(new['cn'][0], new_domain)
+				create_certificate('*.%s' % new['cn'][0], new_domain)
 		if new:
 			# Reset permissions
 			fqdn = "%s.%s" % (new['cn'][0], domain(new))
+			certpath = os.path.join(SSLDIR, fqdn)
+			os.path.walk(certpath, set_permissions, (dn, new))
+			fqdn = "*.%s.%s" % (new['cn'][0], domain(new))
 			certpath = os.path.join(SSLDIR, fqdn)
 			os.path.walk(certpath, set_permissions, (dn, new))
 	finally:
