@@ -1,0 +1,40 @@
+#!/bin/sh
+
+if [ -x "/usr/sbin/univention-scp" ]; then
+	echo "Couldn't download host certificate, univention-scp was not found"
+	exit 1
+fi
+
+local hostname="$1"
+local DCNAME="$2"
+local domainname="$(ucr get domainname)"
+
+echo -n "Download host certificate: "
+local HOSTPWD="/etc/machine.secret"
+local HOSTACCOUNT="$hostname\$"
+local counter=0
+while true
+do
+	((counter++))
+	univention-scp "$HOSTPWD" -q -r \
+		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/$hostname" \
+		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/$hostname.$domainname" \
+		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/\*.$hostname" \
+		"$HOSTACCOUNT@$DCNAME:/etc/univention/ssl/\*.$hostname.$domainname" \
+		/etc/univention/ssl/ >>/var/log/univention/join.log 2>&1
+	[ -d "/etc/univention/ssl/$hostname" ] && [ -d "/etc/univention/ssl/$hostname.$domainname" ] \
+		&& [ -d "/etc/univention/ssl/*.$hostname" ] && [ -d "/etc/univention/ssl/*.$hostname.$domainname" ] \
+		&& break
+
+	if [ $counter -gt 30 ] \
+		&& [ ! -d "/etc/univention/ssl/$hostname" ] && [ ! -d "/etc/univention/ssl/$hostname.$domainname" ] \
+		&& [ -d "/etc/univention/ssl/*.$hostname" ] && [ -d "/etc/univention/ssl/*.$hostname.$domainname" ]; then
+		echo "failed to get host certificate"
+		exit 1
+	fi
+
+	echo -n "."
+	sleep 20
+done
+
+exit 0

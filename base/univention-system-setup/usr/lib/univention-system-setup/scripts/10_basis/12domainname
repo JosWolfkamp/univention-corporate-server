@@ -204,38 +204,7 @@ if [ "$server_role" = "domaincontroller_master" ]; then  # create the new certif
 	rm -f /etc/univention/ssl/univention-directory-manager
 	ln -sf /etc/univention/ssl/univention-directory-manager.$new_domainname /etc/univention/ssl/univention-directory-manager
 elif [ "$server_role" != "basesystem" ]; then # download certificate from master
-	if [ -x "/usr/sbin/univention-scp" ]; then
-		echo `date` : "Download host certificate"  >> /var/log/univention/setup.log
-		HOSTPWD="/etc/machine.secret"
-		HOSTACCOUNT="$hostname\$"
-
-		i=0
-		univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/$hostname.$new_domainname /etc/univention/ssl/"
-		while [ ! -d "/etc/univention/ssl/$hostname" ] &&  [ ! -d "/etc/univention/ssl/$hostname.$new_domainname" ]; do
-			i=$((i+1))
-			echo `date` : "Download host certificate (try: $i)"  >> /var/log/univention/setup.log
-			sleep 10
-			univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/$hostname.$new_domainname /etc/univention/ssl/"
-			if [ "$i" -gt 30 ]; then
-				echo `date` : "Failed to download the host certificate"  >> /var/log/univention/setup.log
-				break
-			fi
-		done
-		# again for wildcard
-		univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/\*$hostname.$new_domainname /etc/univention/ssl/"
-		while [ ! -d "/etc/univention/ssl/\*$hostname" ] &&  [ ! -d "/etc/univention/ssl/\*$hostname.$new_domainname" ]; do
-			i=$((i+1))
-			echo `date` : "Download host certificate (try: $i)"  >> /var/log/univention/setup.log
-			sleep 10
-			univention-scp $HOSTPWD "-r $HOSTACCOUNT@$ldap_master:/etc/univention/ssl/\*$hostname.$new_domainname /etc/univention/ssl/"
-			if [ "$i" -gt 30 ]; then
-				echo `date` : "Failed to download the host certificate"  >> /var/log/univention/setup.log
-				break
-			fi
-		done
-	else
-		echo `date` : "Couldn't download host certificate, univention-scp was not found"  >> /var/log/univention/setup.log
-	fi
+	/usr/sbin/univention-fetch-certificates "$new_hostname" "$ldap_master" >> /var/log/univention/setup.log
 fi
 
 if [ "$server_role" != "basesystem" ]; then
