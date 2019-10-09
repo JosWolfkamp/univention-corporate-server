@@ -168,7 +168,7 @@ def create_dns_entry(udm, fqdn, alias_target=None):  # type: (UDM, str, Optional
 		alias_target = "{hostname}.{domainname}".format(**ucr())
 	alias_obj = dns_alias_mod.new(superordinate=superordinate)  # type: BaseObject
 	alias_obj.props.name = alias_name
-	alias_obj.props.cname = alias_target
+	alias_obj.props.cname = "{}.".format(alias_target.rstrip("."))
 	alias_obj.save()
 	click.echo(click.style("Created DNS alias '{}' -> '{}'.".format(fqdn, alias_target), fg="green"))
 	return alias_obj
@@ -209,7 +209,7 @@ def set_ucr_vars(appid, fqdn, port, aliases=None, path=None):
 			return
 	ucrvs.extend([
 		"{}/enabled=true".format(ns),
-		"{}/file={}".format(ns, path),
+		"{}/files={}".format(ns, path),
 		"{}/aliases={}".format(ns, ",".join(aliases or [])),
 		"{}/ssl/certificate=/etc/univention/ssl/{}/cert.pem".format(ns, fqdn),
 		"{}/ssl/key=/etc/univention/ssl/{}/private.key".format(ns, fqdn),
