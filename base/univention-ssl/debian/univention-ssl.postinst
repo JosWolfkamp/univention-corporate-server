@@ -107,6 +107,18 @@ then
 			/usr/sbin/univention-certificate-check-validity
 		fi
 	fi
+	if dpkg --compare-versions "$2" lt-nl 13.0.0-4
+	then
+		univention-certificate list | tail -n +2 | cut -f2 | grep -v "^\*" | while read -r cert; do
+			internal_cert="${c%%.$(ucr get domainname)}"
+			if [ "$cert" = "$internal_cert" ]; then
+				continue
+			fi
+			univention-certificate check -name "*.$cert" >/dev/null 2>&1 && continue
+			univention-certificate new -name "*.$cert"
+			ln -s "/etc/univention/ssl/*.$cert" "/etc/univention/ssl/*.$internal_cert"
+		done
+	fi
 	SSL='/usr/local/share/ca-certificates/ucsCA.crt'
 	if [ ! -e "$SSL" ]
 	then
