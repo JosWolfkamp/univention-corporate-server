@@ -121,6 +121,10 @@ def main(app, fqdn, port, aliases, binddn, bindpwdfile, remove):
 	else:
 		set_ucr_vars(app, fqdn, port, aliases)
 
+	click.echo(click.style("Please now reload the DNS and the web servers:", bold=True))
+	click.echo(click.style("$ service apache2 reload", bold=True))
+	click.echo(click.style("$ service bind9 reload", bold=True))
+
 
 def forward_zones(udm):  # type: (UDM) -> List[BaseObject]
 	global _forward_zones
@@ -211,8 +215,9 @@ def set_ucr_vars(appid, fqdn, port, aliases=None, path=None):
 		"{}/enabled=true".format(ns),
 		"{}/files={}".format(ns, path),
 		"{}/aliases={}".format(ns, ",".join(aliases or [])),
-		"{}/ssl/certificate=/etc/univention/ssl/{}/cert.pem".format(ns, fqdn),
-		"{}/ssl/key=/etc/univention/ssl/{}/private.key".format(ns, fqdn),
+		"{}/ssl/certificate=/etc/univention/ssl/*.{}.{}/cert.pem".format(
+			ns, ucr()["hostname"], ucr()["domainname"]),
+		"{}/ssl/key=/etc/univention/ssl/*.{}.{}/private.key".format(ns, ucr()["hostname"], ucr()["domainname"]),
 		"{}/ssl/ca=/etc/univention/ssl/ucsCA/CAcert.pem".format(ns),
 	])
 	handler_set(ucrvs)
