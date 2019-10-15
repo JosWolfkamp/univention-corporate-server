@@ -1,3 +1,9 @@
+univention-updater (13.0.1-73.2) unstable; urgency=medium
+
+  * Bug #50333: Fix merge error
+
+ -- Erik Damrose <damrose@univention.de>  Tue, 15 Oct 2019 16:10:43 +0200
+
 univention-updater (13.0.1-73.1) unstable; urgency=medium
 
   * Bug #50333: Adapt updater message for 4.3-5 errata
