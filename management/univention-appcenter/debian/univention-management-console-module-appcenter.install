@@ -1,4 +1,4 @@
-udm/handlers/appcenter/*.py usr/share/pyshared/univention/admin/handlers/appcenter
+udm/handlers/appcenter/*.py usr/lib/python2.7/dist-packages/univention/admin/handlers/appcenter
 listener/app_attributes.py usr/lib/univention-directory-listener/system
 ldap/*.schema usr/share/univention-management-console-module-appcenter
 ldap/*.acl usr/share/univention-management-console-module-appcenter
