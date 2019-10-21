@@ -1,7 +1,13 @@
 
 pidfile			/var/run/slapd/slapd.pid
 argsfile		/var/run/slapd/slapd.args
-loglevel		@%@ldap/debug/level@%@
+@!@
+loglevel = configRegistry.get("ldap/debug/level")
+if loglevel:
+       print 'loglevel		%s' % (loglevel,)
+else:
+       print 'loglevel		none'
+@!@
 allow			bind_v2 update_anon
 
 TLSCertificateFile	/etc/univention/ssl/@%@hostname@%@.@%@domainname@%@/cert.pem
