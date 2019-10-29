@@ -85,6 +85,29 @@ Description: Library for Univention App Center
  corporate environments. For more information about UCS,
  refer to: https://www.univention.de/
 
+Package: python3-univention-appcenter
+Architecture: all
+Depends: univention-ssh,
+ univention-join (>= 10.0.0-12),
+ univention-directory-manager-tools,
+ univention-admin-diary-client (>= 1.0.0-29),
+ python3-univention,
+ python3-univention-config-registry,
+ python3-univention-directory-manager,
+ python3-mysqldb,
+ gnupg,
+ zsync,
+ python3-ipaddr,
+ ${misc:Depends},
+ ${python3:Depends},
+Recommends: univention-appcenter
+Description: Library for Univention App Center
+ .
+ It is part of Univention Corporate Server (UCS), an
+ integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
+
 Package: univention-appcenter-dev
 Architecture: all
 Replaces: python-univention-appcenter-dev
