@@ -32,6 +32,8 @@
 # vim: set fileencoding=utf-8 et sw=4 ts=4 :
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
+import six
+
 
 ARPA_IP4 = '.in-addr.arpa'
 ARPA_IP6 = '.ip6.arpa'
@@ -101,7 +103,9 @@ def stripDot(old):
 	"""
 	if isinstance(old, list):
 		return [stripDot(_) for _ in old]
-	return old[:-1] if isinstance(old, basestring) and old.endswith('.') else old
+	if isinstance(old,  six.binary_type):
+		old = six.ensure_str(old, encoding='utf-8', errors='strict')
+	return old[:-1] if isinstance(old, six.string_types) and old.endswith('.') else old
 
 
 if __name__ == '__main__':
