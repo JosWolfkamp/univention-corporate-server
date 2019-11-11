@@ -1,3 +1,9 @@
+python-notifier (0.9.7-5-python3-3) unstable; urgency=medium
+
+  * 
+
+ -- Florian Best <best@univention.de>  Mon, 11 Nov 2019 15:44:57 +0100
+
 python-notifier (0.9.7-5) unstable; urgency=low
 
   * Bug #47114: Fix memory leak
