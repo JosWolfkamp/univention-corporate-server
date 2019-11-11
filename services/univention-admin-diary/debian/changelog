@@ -1,4 +1,4 @@
-univention-admin-diary (1.0.0-48) unstable; urgency=medium
+univention-admin-diary (1.0.0-47-python3) unstable; urgency=medium
 
   * Bug #49169: migrate univention-admin-diary to dh_python
 
