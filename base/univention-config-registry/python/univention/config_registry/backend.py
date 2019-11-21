@@ -510,7 +510,7 @@ class _ConfigRegistry(dict):
 		"""Load sub registry from file."""
 		import_failed = False
 		try:
-			reg_file = open(self.file, 'r')
+			reg_file = open(self.file, 'r', encoding='UTF-8')
 		except EnvironmentError:
 			import_failed = True
 		else:
