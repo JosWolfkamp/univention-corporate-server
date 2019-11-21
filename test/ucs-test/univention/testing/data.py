@@ -172,7 +172,7 @@ class _TestReader(object):  # pylint: disable-msg=R0903
 				return line[3:]
 			if not line.startswith('#'):
 				while line:
-					self.digest.update(line)
+					self.digest.update(line.encode("utf-8"))
 					line = self.stream.readline(size)
 
 
@@ -484,7 +484,7 @@ class TestCase(object):
 	"""Test case."""
 
 	logger = logging.getLogger('test.case')
-	RE_NL = re.compile(r'[\r\n]+')
+	RE_NL = re.compile(r'[\r\n]+'.encode('utf-8'))
 
 	def __init__(self):
 		self.exe = None
@@ -523,7 +523,7 @@ class TestCase(object):
 			self.exe = CheckExecutable(lang)
 			self.args = args[2:]
 
-			digest.update(firstline)
+			digest.update(firstline.encode('utf8'))
 			reader = _TestReader(tc_file, digest)
 			try:
 				header = yaml.load(reader) or {}
@@ -626,7 +626,7 @@ class TestCase(object):
 
 				if fd in rlist:
 					data = os.read(fd, 1024)
-					out.write(data)
+					out.write(data.decode("utf-8"))
 					buf += data
 				else:
 					data = EOF if shutdown else None
@@ -643,7 +643,7 @@ class TestCase(object):
 						del buf[0:match.end()]
 
 					now = datetime.now().isoformat(' ')
-					entry = '{1[0]}{0}{1[1]} {2}\n'.format(now, paren, line.rstrip('\r\n'))
+					entry = '{1[0]}{0}{1[1]} {2}\n'.format(now, paren, line.rstrip(b'\r\n'))
 					log.append(entry)
 					combined.append(entry)
 
