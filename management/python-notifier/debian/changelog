@@ -1,3 +1,9 @@
+python-notifier (0.9.7-5-python3-3.01) unstable; urgency=medium
+
+  * Test new version of python-notify
+
+ -- Owen Synge <synge@univention.de>  Thu 21 Nov 09:38:39 CET 2019
+
 python-notifier (0.9.7-5-python3-3) unstable; urgency=medium
 
   * 
