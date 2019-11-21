@@ -146,16 +146,16 @@ directory = {directory}
 	@classmethod
 	def get_option_group(cls, parser):
 		"""The option group for ucs-test-framework"""
-		coverage_group = OptionGroup(parser, 'Code coverage measurement options')
-		coverage_group.add_option("--with-coverage", dest="coverage", action='store_true', default=False)
-		coverage_group.add_option("--coverage-config", dest="coverage_config", default=os.path.abspath(os.path.expanduser('~/.coveragerc')))  # don't use this, doesn't work!
-		coverage_group.add_option("--branch-coverage", dest="branch_coverage", action='store_true', default=False)
-		coverage_group.add_option('--coverage-sources', dest='coverage_sources', action='append', default=[])
-		coverage_group.add_option("--coverage-debug", dest="coverage_debug", action='store_true', default=False)
-		coverage_group.add_option('--coverage-restart-service', dest='coverage_restart_services', action='append', default=[])
-		coverage_group.add_option('--coverage-show-missing', dest='coverage_show_missing', action='store_true', default=False)
-		coverage_group.add_option("--coverage-output-directory", dest="coverage_output_directory", default=os.path.abspath(os.path.expanduser('~/htmlcov')))
-		return coverage_group
+		coverage_group = output_group = parser.add_argument_group('Code coverage measurement options')
+		coverage_group.add_argument("--with-coverage", dest="coverage", action='store_true', default=False)
+		coverage_group.add_argument("--coverage-config", dest="coverage_config", default=os.path.abspath(os.path.expanduser('~/.coveragerc')))  # don't use this, doesn't work!
+		coverage_group.add_argument("--branch-coverage", dest="branch_coverage", action='store_true', default=False)
+		coverage_group.add_argument('--coverage-sources', dest='coverage_sources', action='append', default=[])
+		coverage_group.add_argument("--coverage-debug", dest="coverage_debug", action='store_true', default=False)
+		coverage_group.add_argument('--coverage-restart-service', dest='coverage_restart_services', action='append', default=[])
+		coverage_group.add_argument('--coverage-show-missing', dest='coverage_show_missing', action='store_true', default=False)
+		coverage_group.add_argument("--coverage-output-directory", dest="coverage_output_directory", default=os.path.abspath(os.path.expanduser('~/htmlcov')))
+		return
 
 	@classmethod  # noqa: C901
 	def startup(cls):
