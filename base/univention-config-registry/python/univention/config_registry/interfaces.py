@@ -32,11 +32,11 @@
 # <https://www.gnu.org/licenses/>.
 
 # pylint: disable-msg=W0142,C0103,R0201,R0904
-
+from __future__ import absolute_import
 from sys import maxsize
 import re
 from functools import wraps
-from backend import ConfigRegistry
+from .backend import ConfigRegistry
 import six
 if six.PY3:
 	from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
