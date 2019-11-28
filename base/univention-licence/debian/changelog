@@ -1,3 +1,9 @@
+univention-licence (10.0.0-3-python3) unstable; urgency=medium
+
+  * 
+
+ -- Florian Best <best@univention.de>  Thu, 28 Nov 2019 18:37:51 +0100
+
 univention-licence (10.0.0-3) unstable; urgency=medium
 
   * Bug #49137: migrate to dh_python
