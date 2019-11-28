@@ -146,7 +146,30 @@
 			</para>
 
 		</section>
+		<section id="idmcloud:o365:multipleconnections">
+			The Office365 Connectpr is able to synchronise users to multiple Azure Active Directories.
+			To each user account, multiple Azure AD instances can be assigned in which an account should be created.
+			A user gets a distinct username (<wordasword>Userprincipalname<wordasword>, UPN) for every assigned Azure AD.
 
+			Every additional Azure AD connection is named with an alias by an administrator.
+			To manage these aliases the program <command>/usr/share/univention-office365/scripts/manage_adconnections</command> is used.
+			A new alias is created by calling <command>/usr/share/univention-office365/scripts/manage_adconnections create \<Aliasname\></command>.
+			This will set the &ucsUCRV; <envar>office365/adconnection/wizard<envar> to the newly created alias.
+			The value of this &ucsUCRV; defines which connection is configured by the Office365 Configuration Wizard.
+
+			After creating the alias, the new connection must be configured through the Office365 Configuration Wizard as well.
+
+			To use Single Sign-On with multiple Azure AD connections, a new logical SAML Identity Provider is needed for each connection.
+			This is described in <xref linkend="domain:saml:extendedconfiguration"/>.
+			The Identity Provider should get the same name as the alias. If another name was chosen, the PowerShell script to configure Single Sign-On needs to be adjusted manually.
+			For example the &ucsUCRV; <envar>saml/idp/entityID/supplement/<replaceable>Aliasname</replaceable>=true</envar> needs to be set on all domaincontrollers responsible for Single Sign-On.
+
+			A UCS user can only use one Oficce365 account in one browser session at a time.
+			To change the connection, a logout at Office365 is necessary.
+
+			A default alias for oOffice365 enabled users and groups can be set in the &ucsUCRV; <envar>office365/defaultalias</envar>.
+			To synchronize them into a different Azure Active Directory the connection alias must be set on the user or group.
+		</section>
 		<section id="idmcloud:o365:debug">
 			<title>Troubleshooting/Debugging</title>
 
