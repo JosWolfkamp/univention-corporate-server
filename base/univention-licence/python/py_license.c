@@ -98,6 +98,44 @@ static struct PyMethodDef license_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+
+static struct PyModuleDef moduledef_license = {
+	PyModuleDef_HEAD_INIT,
+	"license",     /* m_name */
+	"univention license module",  /* m_doc */
+	-1,                  /* m_size */
+	license_methods ,    /* m_methods */
+	NULL,                /* m_reload */
+	NULL,                /* m_traverse */
+	NULL,                /* m_clear */
+	NULL,                /* m_free */
+};
+
+static struct PyModuleDef moduledef_libuniventionlicense = {
+	PyModuleDef_HEAD_INIT,
+	"libuniventionlicense",     /* m_name */
+	"univention license module",  /* m_doc */
+	-1,                  /* m_size */
+	license_methods ,    /* m_methods */
+	NULL,                /* m_reload */
+	NULL,                /* m_traverse */
+	NULL,                /* m_clear */
+	NULL,                /* m_free */
+};
+
+PyMODINIT_FUNC PyInit_libuniventionlicense(void)
+{
+	return PyModule_Create(&moduledef_libuniventionlicense);
+}
+
+PyMODINIT_FUNC PyInit_license(void)
+{
+	return PyModule_Create(&moduledef_license);
+}
+
+#else
+
 void initlibuniventionlicense(void)
 {
 	(void) Py_InitModule("libuniventionlicense", license_methods);
@@ -107,3 +145,5 @@ void initlicense(void)
 {
 	(void) Py_InitModule("license", license_methods);
 }
+
+#endif
