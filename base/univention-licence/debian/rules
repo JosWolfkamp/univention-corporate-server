@@ -47,15 +47,15 @@ override_dh_auto_configure:
 	autoconf
 	automake --add-missing
 	dh_auto_configure
-	dh_auto_configure --buildsystem=python_distutils
+	dh_auto_configure --buildsystem=pybuild
 
 override_dh_auto_build:
 	dh_auto_build --buildsystem=makefile
-	dh_auto_build --buildsystem=python_distutils
+	dh_auto_build --buildsystem=pybuild
 
 override_dh_auto_install:
 	dh_auto_install --buildsystem=makefile
-	dh_auto_install --buildsystem=python_distutils
+	dh_auto_install --buildsystem=pybuild
 
 override_dh_installman:
 	./dh_doxygen create
