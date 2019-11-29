@@ -1,3 +1,9 @@
+univention-ucs-translation-template (6.0.0-13-python3-1) unstable; urgency=medium
+
+  * 
+
+ -- Florian Best <best@univention.de>  Fri, 29 Nov 2019 12:02:24 +0100
+
 univention-ucs-translation-template (6.0.0-13) unstable; urgency=low
 
   * Bug #50521: Document .univention-l10n format
