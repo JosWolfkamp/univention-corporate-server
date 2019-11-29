@@ -1,3 +1,9 @@
+univention-management-console (11.0.4-49-python3-2) unstable; urgency=medium
+
+  * Bug #50332: ucslint
+
+ -- Florian Best <best@univention.de>  Fri, 29 Nov 2019 12:39:35 +0100
+
 univention-management-console (11.0.4-49-python3-1) unstable; urgency=medium
 
   * 
