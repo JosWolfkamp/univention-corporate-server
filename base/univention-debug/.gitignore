@@ -1,0 +1,39 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# autotools files
+*.in
+*Makefile
+
+aclocal.m4
+autom4te.cache
+compile
+config.*
+configure
+debian/*.log
+depcomp
+include/Makefile.in
+install-sh
+lib/.deps
+lib/.libs/
+libtool
+ltmain.sh
+Makefile
+Makefile.in
+missing
+test-driver
+tests/.deps/
