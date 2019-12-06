@@ -34,20 +34,20 @@ def setup_cronjob(key):
 			print >> sys.stderr, "E: Time or command is missing for cron job cron/%s" % job
 			return
 
-		print '\n'
+		print('\n')
 		if description:
-			print "# %s" % description
+			print("# %s" % description)
 		if mailto == "NONE":
 			mailto = '""'
-		print "MAILTO=%s" % mailto
-		print "%s %s %s" % (time, user, command)
+		print("MAILTO=%s" % mailto)
+		print("%s %s %s" % (time, user, command))
 
 path = configRegistry.get('cron/path', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11')
-print 'PATH="%s"' % path
+print('PATH="%s"' % path)
 
 disabled_globally = configRegistry.is_true('cron/ucrdisabled', False)
 if disabled_globally:
-	print '\n# cron jobs defined by UCR have been disabled by cron/ucr/disabled'
+	print('\n# cron jobs defined by UCR have been disabled by cron/ucr/disabled')
 else:
 	for key in configRegistry.keys():
 		if key.startswith('cron/'):

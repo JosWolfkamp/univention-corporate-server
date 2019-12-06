@@ -38,15 +38,15 @@ FILES[None] = (other_logfiles, other_settings)
 
 for (cat, (paths, settings)) in FILES.iteritems():
 	for path in sorted(paths):
-		print path
-	print '{'
+		print(path)
+	print('{')
 	for setting in settings.values():
-		print '\t%s' % (setting, )
-	print """\
+		print('\t%s' % (setting, ))
+	print("""\
 	delaycompress
 	sharedscripts
 	postrotate
 		invoke-rc.d rsyslog rotate > /dev/null
 	endscript
-}"""
+}""")
 @!@

@@ -63,32 +63,32 @@ else:
 
 # if no other authentication mechanism but unix is active it is required
 if not methods and index == -1:
-   	print '''# local unix authentication; do not cache passwords
-auth     required                         pam_unix.so'''
+   	print('''# local unix authentication; do not cache passwords
+auth     required                         pam_unix.so''')
 else:
-	print '''# local unix authentication; do not cache passwords
-auth     sufficient                           pam_unix.so'''
+	print('''# local unix authentication; do not cache passwords
+auth     sufficient                           pam_unix.so''')
 
-print '''
+print('''
 # remote authentication; if a service
 # - fails, we will fall back to cache authentication
 # - is successful, cache the password
-# - is not aware of the user, proceed with the next service'''
+# - is not aware of the user, proceed with the next service''')
 
 if 'krb5' in methods:
 	last=0
 	if not 'ldap' in methods and not 'winbind' in methods:
 		last=1
-	print pam_section(pam_krb5, index, last)
+	print(pam_section(pam_krb5, index, last))
 	index -= 1
 if 'ldap' in methods:
 	last=0
 	if not 'winbind' in methods:
 		last=1
-	print pam_section(pam_ldap, index, last)
+	print(pam_section(pam_ldap, index, last))
 	index -= 1
 if 'winbind' in methods:
-	print pam_section(pam_winbind, index, 1)
+	print(pam_section(pam_winbind, index, 1))
 	index -= 1
 
 # cache is activated
@@ -96,9 +96,9 @@ if index == 0:
 	if len(methods) == 0:
 		# cache was removed before, if no other pam-module was set
 		# pam must not use pam_passwdcache with insert
-		print pam_cache_only
+		print(pam_cache_only)
 	else:
-		print pam_cache	
+		print(pam_cache)	
 
 # cache_store=['success', 'new_authtok_reqd']
 # cache_delete=['auth_err', 'perm_denied', 'cred_err', 'acct_expired', 'authtok_expired']

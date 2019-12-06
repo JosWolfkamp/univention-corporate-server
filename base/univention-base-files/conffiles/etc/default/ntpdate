@@ -15,5 +15,5 @@ if timeserver != 'local':
 		if ts and ts not in dcs:
 			servers.append(ts)
 if servers:
-	print 'NTPSERVERS="%s"' % ' '.join(servers)
+	print('NTPSERVERS="%s"' % ' '.join(servers))
 @!@

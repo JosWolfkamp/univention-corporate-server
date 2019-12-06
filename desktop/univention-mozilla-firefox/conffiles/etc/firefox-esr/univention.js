@@ -15,5 +15,5 @@ for ffconf, ucrv in {
 }.iteritems():
 	value = configRegistry.get(ucrv)
 	if value:
-		print 'pref("%s", "%s");' % (ffconf, value)
+		print('pref("%s", "%s");' % (ffconf, value))
 @!@

@@ -9,10 +9,10 @@ if configRegistry.is_true('auth/faillog', False):
 	if configRegistry.get('auth/faillog/unlock_time', '0') != '0':
 		tally_option+=' unlock_time=%s' % configRegistry.get('auth/faillog/unlock_time')
 	if configRegistry.is_true('auth/faillog/lock_global', False):
-		print 'auth	[success=1 user_unknown=1 default=bad]	pam_tally.so %s' % tally_option
-		print 'auth	[default=die]	pam_runasroot.so program=/usr/lib/univention-pam/lock-user'
+		print('auth	[success=1 user_unknown=1 default=bad]	pam_tally.so %s' % tally_option)
+		print('auth	[default=die]	pam_runasroot.so program=/usr/lib/univention-pam/lock-user')
 	else:
-		print 'auth	required	pam_tally.so %s' % tally_option
+		print('auth	required	pam_tally.so %s' % tally_option)
 @!@
 
 # local unix authentication; don't cache passwords
@@ -67,21 +67,21 @@ if 'krb5' in methods:
 	last=0
 	if not 'ldap' in methods and not 'winbind' in methods:
 		last=1
-	print pam_section(pam_krb5, index, last)
+	print(pam_section(pam_krb5, index, last))
 	index -= 1
 if 'ldap' in methods:
 	last=0
 	if not 'winbind' in methods:
 		last=1
-	print pam_section(pam_ldap, index, last)
+	print(pam_section(pam_ldap, index, last))
 	index -= 1
 if 'winbind' in methods:
-	print pam_section(pam_winbind, index, 1)
+	print(pam_section(pam_winbind, index, 1))
 	index -= 1
 
 # cache is activated
 if index == 0:
-	print pam_cache	
+	print(pam_cache)	
 
 # cache_store=['success', 'new_authtok_reqd']
 # cache_delete=['auth_err', 'perm_denied', 'cred_err', 'acct_expired', 'authtok_expired']

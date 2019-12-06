@@ -22,5 +22,5 @@ for application in defFavorites:
 if len(favorites) != 0:
     favorites = favorites[:-1]
 
-print "FavoriteURLs=%s" % (favorites)
+print("FavoriteURLs=%s" % (favorites))
 @!@

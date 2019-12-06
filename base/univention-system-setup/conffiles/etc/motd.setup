@@ -109,7 +109,7 @@ if not url_list:
 			url_list.append('https://[%s]/' % (addr.ip,))
 
 msg = msg_amazon if configRegistry.is_true('server/amazon') else msg_di_uss
-print msg % {
+print(msg % {
 	'url_list': '\n  '.join(url_list),
-}
+})
 @!@
