@@ -1,3 +1,9 @@
+univention-python (12.0.0-16-python3-1) unstable; urgency=medium
+
+  * 
+
+ -- Florian Best <best@univention.de>  Fri, 06 Dec 2019 10:10:51 +0100
+
 univention-python (12.0.0-16) unstable; urgency=medium
 
   * Bug #50033: Sync more attributes in s4connector
