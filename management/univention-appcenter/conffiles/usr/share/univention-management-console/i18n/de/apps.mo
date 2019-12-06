@@ -44,5 +44,5 @@ for app in apps:
 			msgstr=msgstr or ''
 		)
 		po.append(entry)
-print po.to_binary()
+print(po.to_binary())
 @!@
