@@ -47,5 +47,5 @@ if configRegistry.get('squid/contentscan', 'no').lower() in [ 'yes', 'true' ]:
 	prefix = 'dansguardian/groups/%s/banned/regexp/urls/' % group
 	for key in configRegistry.keys():
 		if key.startswith( prefix ):
-			print configRegistry[ key ]
+			print(configRegistry[ key ])
 @!@

@@ -1,5 +1,5 @@
 @!@
-print '\tusershare max shares = %s' % configRegistry.get('samba/usershare/max_shares', '0')
+print('\tusershare max shares = %s' % configRegistry.get('samba/usershare/max_shares', '0'))
 
 for key, smbstring in [('samba/usershare/allow_guests','usershare allow guests'),
 			('samba/usershare/owner_only', 'usershare owner only'),
@@ -9,5 +9,5 @@ for key, smbstring in [('samba/usershare/allow_guests','usershare allow guests')
 			('samba/usershare/template_share', 'usershare template share'),]:
 	value = configRegistry.get(key)
 	if value:
-		print '\t%s = %s' % (smbstring, value)
+		print('\t%s = %s' % (smbstring, value))
 @!@

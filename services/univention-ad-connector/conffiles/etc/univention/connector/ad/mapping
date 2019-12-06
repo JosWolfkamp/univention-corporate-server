@@ -56,7 +56,7 @@ for k in configRegistry.keys():
 	if k.startswith('connector/ad/mapping/ignoresubtree/'):
 		global_ignore_subtree.append(configRegistry.get(k))
 
-print 'global_ignore_subtree=%s' % global_ignore_subtree
+print('global_ignore_subtree=%s' % global_ignore_subtree)
 @!@
 
 ad_mapping = {
@@ -69,9 +69,9 @@ ad_mapping = {
 			# read, write, sync, none
 			@!@
 if configRegistry.get('connector/ad/mapping/user/syncmode'):
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/user/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/user/syncmode'))
 else:
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode'))
 @!@
 			scope='sub',
 
@@ -82,7 +82,7 @@ from univention.connector.ad.mapping import ignore_filter_from_tmpl
 ignore_filter = ignore_filter_from_tmpl('(uid={0!e})(CN={0!e})', 'connector/ad/mapping/user/ignorelist')
 ignore_filter = '(|{}{})'.format('(userAccountControl=2080)', ignore_filter)
 if ignore_filter:
-	print "			ignore_filter=%r," % ignore_filter
+	print("			ignore_filter=%r," % ignore_filter)
 @!@
 
 			ignore_subtree = global_ignore_subtree,
@@ -120,7 +120,7 @@ if ignore_filter:
 			post_con_modify_functions=[ univention.connector.ad.set_userPrincipalName_from_ucr,
 @!@
 if configRegistry.is_false('connector/ad/mapping/user/password/disabled', True):
-	print '						    univention.connector.ad.password.password_sync_ucs,'
+	print('						    univention.connector.ad.password.password_sync_ucs,')
 @!@
 						    univention.connector.ad.primary_group_sync_from_ucs,
 						    univention.connector.ad.object_memberships_sync_from_ucs,
@@ -130,9 +130,9 @@ if configRegistry.is_false('connector/ad/mapping/user/password/disabled', True):
 			post_ucs_modify_functions=[ @!@
 if configRegistry.is_false('connector/ad/mapping/user/password/disabled', True):
 	if configRegistry.is_true('connector/ad/mapping/user/password/kinit', False):
-		print '						univention.connector.ad.password.password_sync_kinit,'
+		print('						univention.connector.ad.password.password_sync_kinit,')
 	else:
-		print '						univention.connector.ad.password.password_sync,'
+		print('						univention.connector.ad.password.password_sync,')
 @!@
 						    univention.connector.ad.set_univentionObjectFlag_to_synced,
 						    univention.connector.ad.primary_group_sync_to_ucs,
@@ -145,12 +145,12 @@ if configRegistry.is_false('connector/ad/mapping/user/password/disabled', True):
 							ucs_attribute='organisation',
 							ldap_attribute='o',
 							@!@
-print 'con_attribute=\'%s\',' % (configRegistry.get('connector/ad/mapping/organisation', 'company'))
+print('con_attribute=\'%s\',' % (configRegistry.get('connector/ad/mapping/organisation', 'company')))
 							@!@
 						),
 						@!@
 if 'connector/ad/mapping/user/exchange' in configRegistry and configRegistry['connector/ad/mapping/user/exchange'] in ['yes','true']:
-	print """
+	print("""
 					'Exchange-Homeserver': univention.connector.attribute (
 							ucs_attribute='Exchange-Homeserver',
 							ldap_attribute='univentionADmsExchHomeServerName',
@@ -166,9 +166,9 @@ if 'connector/ad/mapping/user/exchange' in configRegistry and configRegistry['co
 							ldap_attribute='univentionADmailNickname',
 							con_attribute='mailNickname',
 					),
-					"""
+					""")
 if configRegistry.is_true('connector/ad/mapping/user/primarymail'):
-	print """
+	print("""
 					'mailPrimaryAddress': univention.connector.attribute (
 						ucs_attribute='mailPrimaryAddress',
 						ldap_attribute='mailPrimaryAddress',
@@ -180,21 +180,21 @@ if configRegistry.is_true('connector/ad/mapping/user/primarymail'):
 						compare_function = proxyAddresses.equal,
 						con_value_merge_function = proxyAddresses.merge_ucs2con,
 					),
-					"""
-	print """
+					""")
+	print("""
 					'mailPrimaryAddress_to_mail': univention.connector.attribute (
 						sync_mode='write',
 						ucs_attribute='mailPrimaryAddress',
 						ldap_attribute='mailPrimaryAddress',
 						con_attribute='mail',
 					),
-					"""
+					""")
 if configRegistry.is_true('connector/ad/mapping/user/alternativemail'):
 	if configRegistry.is_true('connector/ad/mapping/user/primarymail'):
 		sync_mode = 'read'	## proxyAddresses.to_mailPrimaryAddress does the write
 	else:
 		sync_mode = 'sync'
-	print """
+	print("""
 					'mailAlternativeAddress': univention.connector.attribute (
 						sync_mode='%s',
 						ucs_attribute='mailAlternativeAddress',
@@ -206,7 +206,7 @@ if configRegistry.is_true('connector/ad/mapping/user/alternativemail'):
 						),
 						compare_function = proxyAddresses.equal,
 					),
-					""" % sync_mode
+					""" % sync_mode)
 @!@
 					'description': univention.connector.attribute (
 						ucs_attribute='description',
@@ -289,9 +289,9 @@ if configRegistry.is_true('connector/ad/mapping/user/alternativemail'):
 
 			@!@
 if configRegistry.get('connector/ad/mapping/group/syncmode'):
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/group/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/group/syncmode'))
 else:
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode'))
 @!@
 			scope='sub',
 
@@ -303,7 +303,7 @@ if configRegistry.is_false('connector/ad/mapping/group/grouptype', False):
 ignore_filter_parts += ignore_filter_from_attr('cn', 'connector/ad/mapping/group/ignorelist')
 ignore_filter = '(|{})'.format(ignore_filter_parts)
 if ignore_filter:
-	print "			ignore_filter=%r," % ignore_filter
+	print("			ignore_filter=%r," % ignore_filter)
 @!@
 
 			ignore_subtree = global_ignore_subtree,
@@ -332,11 +332,11 @@ if ignore_filter:
 						),
 @!@
 if configRegistry.is_true('connector/ad/mapping/group/grouptype', True):
-	print "					'groupType': univention.connector.attribute ("
-	print "							ucs_attribute='adGroupType',"
-	print "							ldap_attribute='univentionGroupType',"
-	print "							con_attribute='groupType',"
-	print "					),"
+	print("					'groupType': univention.connector.attribute (")
+	print("							ucs_attribute='adGroupType',")
+	print("							ldap_attribute='univentionGroupType',")
+	print("							con_attribute='groupType',")
+	print("					),")
 @!@
 					'description': univention.connector.attribute (
 							ucs_attribute='description',
@@ -345,7 +345,7 @@ if configRegistry.is_true('connector/ad/mapping/group/grouptype', True):
 						),
 						@!@
 if configRegistry.is_true('connector/ad/mapping/group/primarymail'):
-	print """
+	print("""
 					'mailAddress': univention.connector.attribute (
 						sync_mode='read',
 						ucs_attribute='mailAddress',
@@ -358,21 +358,21 @@ if configRegistry.is_true('connector/ad/mapping/group/primarymail'):
 						compare_function = proxyAddresses.equal,
 						con_value_merge_function = proxyAddresses.merge_ucs2con,
 					),
-					"""
-	print """
+					""")
+	print("""
 					'mailPrimaryAddress_to_mail': univention.connector.attribute (
 						sync_mode='write',
 						ucs_attribute='mailAddress',
 						ldap_attribute='mailPrimaryAddress',
 						con_attribute='mail',
 					),
-					"""
+					""")
 if configRegistry.is_true('connector/ad/mapping/group/alternativemail'):
 	if configRegistry.is_true('connector/ad/mapping/group/primarymail'):
 		sync_mode = 'read'	## proxyAddresses.to_mailPrimaryAddress does the write
 	else:
 		sync_mode = 'sync'
-	print """
+	print("""
 					'mailAlternativeAddress': univention.connector.attribute (
 						sync_mode='%s',
 						ucs_attribute='mailAlternativeAddress',
@@ -384,27 +384,27 @@ if configRegistry.is_true('connector/ad/mapping/group/alternativemail'):
 						),
 						compare_function = proxyAddresses.equal,
 					),
-					""" % sync_mode
+					""" % sync_mode)
 if 'connector/ad/mapping/group/exchange' in configRegistry and configRegistry['connector/ad/mapping/group/exchange'] in ['yes','true']:
-	print """
+	print("""
 					'Exchange-Nickname': univention.connector.attribute (
 						ucs_attribute='Exchange-Nickname',
 						ldap_attribute='univentionADmailNickname',
 						con_attribute='mailNickname',
 					),
-					"""
+					""")
 					@!@
 				},
 
 			mapping_table = {
 						@!@
 if 'connector/ad/mapping/group/language' in configRegistry and configRegistry['connector/ad/mapping/group/language'] in ['de','DE']:
-	print """
+	print("""
 				'cn': [( u'Domain Users' , u'Domänen-Benutzer'), ( u'Domain Users' , u'Domain Users'),
 						(u'Domain Admins', u'Domänen-Admins'), (u'Domain Admins', u'Domain Admins'),
 						(u'Windows Hosts', u'Domänencomputer'), (u'Windows Hosts', u'Windows Hosts'),
 						(u'Domain Guests', u'Domänen-Gäste'), (u'Domain Guests', u'Domain Guests')]
-					"""
+					""")
 					@!@
 			},
 
@@ -418,9 +418,9 @@ if 'connector/ad/mapping/group/language' in configRegistry and configRegistry['c
 
 			@!@
 if configRegistry.get('connector/ad/mapping/computer/syncmode'):
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/computer/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/computer/syncmode'))
 else:
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode'))
 @!@
 
 			post_ucs_modify_functions=[ 
@@ -441,7 +441,7 @@ else:
 from univention.connector.ad.mapping import ignore_filter_from_attr
 ignore_filter = ignore_filter_from_attr('cn', 'connector/ad/mapping/windowscomputer/ignorelist')
 if ignore_filter:
-	print "			ignore_filter=%r," % ignore_filter
+	print("			ignore_filter=%r," % ignore_filter)
 @!@
 
 			con_create_objectclass=['top', 'computer' ],
@@ -485,9 +485,9 @@ if ignore_filter:
 
 			@!@
 if configRegistry.get('connector/ad/mapping/container/syncmode'):
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/container/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/container/syncmode'))
 else:
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode'))
 @!@
 
 			scope='sub',
@@ -498,7 +498,7 @@ else:
 from univention.connector.ad.mapping import ignore_filter_from_attr
 ignore_filter = ignore_filter_from_attr('cn', 'connector/ad/mapping/container/ignorelist', 'mail,kerberos')
 if ignore_filter:
-	print "			ignore_filter=%r," % ignore_filter
+	print("			ignore_filter=%r," % ignore_filter)
 @!@
 
 			ignore_subtree = global_ignore_subtree,
@@ -531,9 +531,9 @@ if ignore_filter:
 
 			@!@
 if configRegistry.get('connector/ad/mapping/ou/syncmode'):
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/ou/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/ou/syncmode'))
 else:
-	print "sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode')
+	print("sync_mode='%s'," % configRegistry.get('connector/ad/mapping/syncmode'))
 @!@
 
 			scope='sub',
@@ -544,7 +544,7 @@ else:
 from univention.connector.ad.mapping import ignore_filter_from_attr
 ignore_filter = ignore_filter_from_attr('ou', 'connector/ad/mapping/ou/ignorelist')
 if ignore_filter:
-	print "			ignore_filter=%r," % ignore_filter
+	print("			ignore_filter=%r," % ignore_filter)
 @!@
 
 			ignore_subtree = global_ignore_subtree,

@@ -15,7 +15,7 @@ groups = configRegistry.get( 'dansguardian/groups', 'defaultgroup' ).split( ';' 
 
 if configRegistry.get( 'dansguardian/groups/system', 'yes' ).lower() in ( 'on', 'yes', '1' ):
 	for grp in groups:
-		print grp
+		print(grp)
 else:
 	begin = 'dansguardian/groups/'
 	end = '/members'
@@ -24,5 +24,5 @@ else:
 			group = key[ len( begin ) : -len( end ) ]
 			fgroup = 'filter%d' % ( groups.index( group ) + 1 )
 			for member in configRegistry[ key ].split( ',' ):
-				print '%s=%s' % ( member, fgroup )
+				print('%s=%s' % ( member, fgroup ))
 @!@

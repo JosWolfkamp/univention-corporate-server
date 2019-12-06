@@ -7,5 +7,5 @@
 if configRegistry.get('squid/virusscan', 'no').lower() in [ 'yes', 'true' ]:
         if not configRegistry.get('dansguardian/virus/exception/extensions', '') == '':
                 for extension in configRegistry['dansguardian/virus/exception/extensions'].split(" "):
-                        print extension
+                        print(extension)
 @!@

@@ -20,6 +20,6 @@
 if configRegistry.get('squid/virusscan', 'no').lower() in [ 'yes', 'true' ]:
         if not configRegistry.get('dansguardian/virus/exception/urls', '') == '':
                 for url in configRegistry['dansguardian/virus/exception/urls'].split(" "):
-                        print url
+                        print(url)
 @!@
 

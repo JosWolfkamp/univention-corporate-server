@@ -54,5 +54,5 @@ if configRegistry.get('squid/contentscan', 'no').lower() in [ 'yes', 'true' ]:
 	group = configRegistry.get( 'dansguardian/current/group' )
 	banned = configRegistry.get( 'dansguardian/groups/%s/banned/sites' % group, '' )
 	for entry in banned.split( ' ' ):
-		print entry
+		print(entry)
 @!@

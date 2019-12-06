@@ -8,11 +8,11 @@ if reduce( lambda x, y: x and y, [ configRegistry.get(key) for key in requiredUC
 	samba3broadcast = configRegistry.get('interfaces/%s/broadcast' % samba3interface)
 	if samba3broadcast:
 		## write configuration from template
-		print '''
+		print('''
 	;; Samba 3 port compatibility for samba4wins
 	; only use the configured interfaces
 	bind interfaces only = yes
 	; do not bind to the virtual interfaces via 0.0.0.0:137
 	socket address = %s
-''' % samba3broadcast
+''' % samba3broadcast)
 @!@
