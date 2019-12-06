@@ -38,8 +38,8 @@ if 'mail/postfix/greylisting/recipient/whitelist' in configRegistry:
 		if exists(filename):
 			POSTGREY_OPTS.append('--whitelist-recipients=%s' % filename)
 
-print "POSTGREY_OPTS='%s'" % escapeString(' '.join(POSTGREY_OPTS))
+print("POSTGREY_OPTS='%s'" % escapeString(' '.join(POSTGREY_OPTS)))
 
 if 'mail/postfix/greylisting/text' in configRegistry:
-	print "POSTGREY_TEXT='%s'" % escapeString(configRegistry['mail/postfix/greylisting/text'])
+	print("POSTGREY_TEXT='%s'" % escapeString(configRegistry['mail/postfix/greylisting/text']))
 @!@

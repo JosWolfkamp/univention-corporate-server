@@ -15,14 +15,14 @@ spamHitsValue = spamHits*"*"
 
 folder = configRegistry.get('mail/dovecot/folder/spam')
 if not folder or folder.lower() == "none":
-	print "# Please set 'mail/dovecot/folder/spam'."
+	print("# Please set 'mail/dovecot/folder/spam'.")
 else:
-	print  """# Univention Sieve Script - generated on %(date)s
+	print("""# Univention Sieve Script - generated on %(date)s
 require ["fileinto", "mailbox"];
 
 # Spamfilter
 if header :contains "X-Spam-Level" "%(hits)s"  {
 	fileinto :create "%(folder)s";
 	stop;
-}""" % {"date": time.asctime(time.localtime()), "hits": spamHitsValue, "folder": folder}
+}""" % {"date": time.asctime(time.localtime()), "hits": spamHitsValue, "folder": folder})
 @!@
