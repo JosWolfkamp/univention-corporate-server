@@ -1024,6 +1024,22 @@ define([
 			}, {});
 		},
 
+		find: function(arr, callback, scope) {
+			// summary:
+			// 		Implementation of Array.prototype.find
+			// 		for compatibility with older browsers.
+			scope = scope || _window.global;
+			var el;
+			for (var x = 0; x < arr.length; x++) {
+				var found = callback.call(scope, arr[x], x, arr);
+				if (found) {
+					el = arr[x];
+					break;
+				}
+			}
+			return el;
+		},
+
 		forIn: function(/*Object*/ obj, /*Function*/ callback, /*Object?*/ scope, /*Boolean?*/ inheritedProperties) {
 			// summary:
 			//		Iterate over all elements of an object.

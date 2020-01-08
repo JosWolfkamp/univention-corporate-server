@@ -29,14 +29,12 @@
 /*global define*/
 define([
 	'dojo/topic',
-	'dojo/dom',
 	'dojox/html/entities',
 	'login',
 	'login/dialog',
 	'umc/menu',
-	'umc/tools',
 	'umc/i18n!umc/hooks/passwordreset'
-], function(topic, dom, entities, login, dialog, menu, tools, _) {
+], function(topic, entities, login, dialog, menu, _) {
 	function isSelfServiceURL() {
 		return window.location.pathname.indexOf('/univention/self-service/') === 0;
 	}
@@ -51,6 +49,21 @@ define([
 			window.open('/univention/self-service/' + window.location.search + '#page=' + subPage);
 		}
 	}
+
+	topic.publish('/portal/menu', 'userMenu', 'addItem', {
+		$priority: 20,
+		label: _('My Profile'),
+		onClick: function() {
+			gotoPage('profiledata');
+		}
+	});
+	topic.publish('/portal/menu', 'userMenu', 'addItem', {
+		$priority: 40,
+		label: _('Protect your account'),
+		onClick: function() {
+			gotoPage('setcontactinformation');
+		}
+	});
 
 	menu.addEntry({
 		parentMenuId: 'umcMenuUserSettings',
