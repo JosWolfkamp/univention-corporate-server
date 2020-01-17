@@ -66,6 +66,7 @@ define([
 		_password_required: null,
 		_loginDialog: null, // internal reference to the login dialog
 		_nextLoginDeferred: null,
+		// _iframeParentHandle: null,
 
 		init: function() {
 			this._initEventHandlers();
@@ -207,7 +208,6 @@ define([
 			// returns:
 			//		A Deferred object that is called upon successful login.
 			//		The callback receives the authorized username as parameter.
-
 			this._loginDialog = new LoginDialog({});
 			this._loginDialog.startup();
 			this._loginDialog.autoFill();
@@ -246,7 +246,7 @@ define([
 			return this.sessionTimeout(info);
 		},
 
-		start: function(username, password, withoutRedirect) {
+		start: function(username, password, withoutRedirect, callbackIfNoRedirect) {
 			//console.debug('starting auth');
 			if (username) {
 				tools.status('username', username);
@@ -260,13 +260,22 @@ define([
 				if (tools.isFalse(tools.status('umc/web/sso/enabled') || 'yes')) {
 					if (!withoutRedirect) {
 						this.redirectToLogin(false);
+					} else {
+						if (callbackIfNoRedirect) {
+							callbackIfNoRedirect(false);
+						}
 					}
 					return;
 				}
 				var passiveLogin = this.passiveSingleSignOn({ timeout: 3000 });
 				return passiveLogin.then(lang.hitch(this, 'sessioninfo')).otherwise(lang.hitch(this, function() {
+					var saml = !passiveLogin.isCanceled();
 					if (!withoutRedirect) {
-						this.redirectToLogin(!passiveLogin.isCanceled());
+						this.redirectToLogin(saml);
+					} else {
+						if (callbackIfNoRedirect) {
+							callbackIfNoRedirect(saml);
+						}
 					}
 				}));
 			}));
@@ -516,7 +525,26 @@ define([
 				})
 			}]);
 			return deferred;
-		}
+		},
+
+		// setupIframeMessaging: function() {
+			// // if (!getQuery('iniframe')) {
+				// // return;
+			// // }
+
+			// this._iframeParentHandle = new Deferred();
+			// window.addEventListener('message', lang.hitch(this, function(evt) {
+				// // TODO check evt.origin
+				// if (evt.data === 'handShake') {
+					// this._iframeParentHandle.resolve(evt.source);
+				// }
+			// }), false);
+			// topic.subscribe('/umc/authenticated', lang.hitch(this, function(username) {
+				// this._iframeParentHandle.then(function(parent) {
+					// parent.postMessage(username);
+				// });
+			// }));
+		// }
 	};
 
 	login.init();

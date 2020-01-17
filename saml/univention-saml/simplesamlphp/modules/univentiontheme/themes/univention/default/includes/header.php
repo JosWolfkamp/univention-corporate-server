@@ -34,7 +34,8 @@ if (array_key_exists('pageid', $this->data)) {
  * sites to put simpleSAMLphp in a frame. The latter is however
  * probably not a good security practice.
  */
-header('X-Frame-Options: SAMEORIGIN');
+// TODO insert valid hosts somehow
+// header("Content-Security-Policy: frame-ancestors 'self' https://master80.mydomain.intranet");
 
 // read and sort available languages and prepare an array to later display them
 $jsonfile = file_get_contents('/var/www/univention/languages.json');
