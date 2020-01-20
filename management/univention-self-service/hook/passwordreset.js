@@ -54,14 +54,14 @@ define([
 		$priority: 20,
 		label: _('My Profile'),
 		onClick: function() {
-			gotoPage('profiledata');
+			topic.publish('/portal/iframes/open', '$__selfservice_profilefata__$', '/univention/portal/icons/iframes/selfservice-profiledata.png', '/univention/self-service/#page=profiledata');
 		}
 	});
 	topic.publish('/portal/menu', 'userMenu', 'addItem', {
 		$priority: 40,
 		label: _('Protect your account'),
 		onClick: function() {
-			gotoPage('setcontactinformation');
+			topic.publish('/portal/iframes/open', '$__selfservice_setcontactinformation__$', '/univention/portal/icons/iframes/selfservice-setcontactinformation.png', '/univention/self-service/#page=setcontactinformation');
 		}
 	});
 
