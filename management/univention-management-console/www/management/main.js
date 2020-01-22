@@ -36,6 +36,7 @@ define([
 	"dojo/_base/window",
 	"dojo/window",
 	"dojo/on",
+	"dojo/on/debounce",
 	"dojo/mouse",
 	"dojo/touch",
 	"dojox/gesture/tap",
@@ -89,7 +90,7 @@ define([
 	"umc/i18n/tools",
 	"umc/i18n!management",
 	"dojo/sniff" // has("ie"), has("ff")
-], function(declare, lang, kernel, array, baseWin, win, on, mouse, touch, tap, aspect, has,
+], function(declare, lang, kernel, array, baseWin, win, on, onDebounce, mouse, touch, tap, aspect, has,
 		Evented, Deferred, all, cookie, topic, ioQuery, Memory, Observable,
 		dom, domAttr, domClass, domGeometry, domConstruct, style, put, hash, styles, entities, gfx, registry, tools, login, dialog, NotificationDropDownButton, NotificationSnackbar, store,
 		_WidgetBase, Menu, MenuItem, PopupMenuItem, MenuSeparator, Tooltip, DropDownButton, StackContainer, menu, MenuButton,
@@ -647,34 +648,18 @@ define([
 		_hostInfo: null,
 		_hostMenu: null,
 
-		_resizeDeferred: null,
 		_handleWindowResize: function() {
-			if (this._resizeDeferred && !this._resizeDeferred.isFulfilled()) {
-				this._resizeDeferred.cancel();
-			}
-
-			this._resizeDeferred = tools.defer(lang.hitch(this, function() {
-				this.__updateHeaderAfterResize();
-			}), 200);
-
-			this._resizeDeferred.otherwise(function() { /* prevent logging of exception */ });
-		},
-
-		__updateHeaderAfterResize: function() {
 			if (!tools.status('singleModule')) {
 				this._updateMoreTabsVisibility();
 			}
 		},
 
 		setupGui: function() {
-			// show the menu bar
 			this.setupHeader();
 			this.setupHelpMenu();
 			this.setupPiwikMenu();
 
-			on(window, 'resize', lang.hitch(this, function() {
-				this._handleWindowResize();
-			}));
+			on(window, onDebounce('resize', 200), lang.hitch(this, '_handleWindowResize'));
 		},
 
 		setupHeader: function() {
@@ -942,11 +927,7 @@ define([
 			//		The following properties may be given:
 			//		* username, password: if both values are given, the UMC tries to directly
 			//		  with these credentials.
-			//		* module, flavor: if module is given, the module is started immediately,
-			//		  flavor is optional.
 
-			// set 'overview' to true for backwards compatibility
-			tools.status('overview', true);
 			// username will be overridden by final authenticated username
 			tools.status('username', props.username || tools.status('username'));
 			// password has been given in the query string... in this case we may cache it, as well
@@ -957,11 +938,13 @@ define([
 				tools.status('mobileView', true);
 			}
 
-			if (typeof props.module === "string") {
-				// a startup module is specified
-				tools.status('autoStartModule', props.module);
-				tools.status('autoStartFlavor', typeof props.flavor === "string" ? props.flavor : null);
-			}
+			// check for 'singlemodule' in hash
+			// as a one off setting and then remove it
+			// from _initialHash
+			var _hashObject = ioQuery.queryToObject(hash());
+			tools.status('singleModule', tools.isTrue(_hashObject.singlemodule));
+			delete _hashObject.singlemodule;
+			_initialHash = decodeURIComponent(ioQuery.objectToQuery(_hashObject));
 
 			login.onInitialLogin(lang.hitch(this, '_authenticated'));
 		},
@@ -1062,12 +1045,9 @@ define([
 				this._updateTopContainerCSSClasses(oldModule, newModule);
 
 				if (!newModule.moduleID) {
-					// this is the overview page, not a module
-					topic.publish('/umc/actions', 'overview');
-					this._updateStateHash();
+					topic.publish('/umc/actions', 'overview'); // this is the overview page, not a module
 				} else {
 					topic.publish('/umc/actions', newModule.moduleID, newModule.moduleFlavor, 'focus');
-					this._updateStateHash();
 				}
 				var overviewShown = (newModule === this._overviewPage);
 				domClass.toggle(baseWin.body(), 'umcOverviewShown', overviewShown);
@@ -1289,32 +1269,19 @@ define([
 
 		onLoaded: function() {
 			var launchableModules = this._getLaunchableModules();
-			tools.status('singleModule', launchableModules.length < 2);
+			tools.status('singleModule', launchableModules.length < 2 || tools.status('singleModule'));
 
 			this.setupGui();
-
-			var autoStartModule = tools.status('autoStartModule');
-			var autoStartFlavor = tools.status('autoStartFlavor') || null;
-			var props;
-			if (autoStartModule && (launchableModules.length === 1 ? (launchableModules[0].id === autoStartModule && (launchableModules[0].flavor || null) == autoStartFlavor) : true)) {
-				props = ioQuery.queryToObject(window.location.search.substring(1));
-				array.forEach(['username', 'password', 'overview', 'lang', 'module', 'flavor'], function(key) {
-					delete props[key];
-				});
-				props = {
-					props: props
-				};
-			}
 
 			if (!launchableModules.length) {
 				dialog.alert(_('There is no module available for the authenticated user %s.', tools.status('username')));
 			} else if (launchableModules.length === 1) {
+				if (_initialHash) {
+					return;
+				}
 				// if only one module exists open it
 				var module = launchableModules[0];
-				this.openModule(module.id, module.flavor, props);
-			} else if (autoStartModule) {
-				// if module is given in the query string, open it directly
-				this.openModule(autoStartModule, autoStartFlavor, props);
+				this.openModule(module.id, module.flavor);
 			}
 		},
 
@@ -1353,17 +1320,17 @@ define([
 		},
 
 		_updateStateHash: function() {
-			tools.defer(lang.hitch(this, function() {
-				var state = this._getStateHash();
-				hash(state);
-			}), 0);
+			if (!tools.status('setupGui')) {
+				return;
+			}
+			hash(this._getStateHash());
 		},
 
 		_getStateHash: function() {
 			var moduleTab = lang.getObject('_tabContainer.selectedChildWidget', false, this);
 			var state = '';
 
-			if (!moduleTab.isOverview) {
+			if (moduleTab && !moduleTab.isOverview) {
 				// module tab
 				state = 'module=' + lang.replace('{id}:{flavor}:{index}:{state}', {
 					id: moduleTab.moduleID,
@@ -1372,7 +1339,7 @@ define([
 					state: moduleTab.moduleState
 				});
 			}
-			else if (moduleTab.isOverview && this.category) {
+			else if (moduleTab && moduleTab.isOverview && this.category) {
 				// overview tab with selected category
 				state = 'category=' + this.category.id;
 			}
@@ -1399,56 +1366,69 @@ define([
 		_reModule: /^module=(.*)$/,
 		_lastStateHash: '',
 		_setupStateHashing: function() {
+			hash("", true);
 			topic.subscribe('/dojo/hashchange', lang.hitch(this, function(_hash) {
-				var hash = decodeURIComponent(_hash);
-				if (this._getStateHash() === hash || this._lastStateHash === hash) {
-					// nothing to do
-					this._lastStateHash = hash;
-					return;
-				}
-				if (!hash) {
-					// UMC overview page
-					this.switchToOverview();
-					return;
-				}
-				var match = hash.match(this._reModule);
-				if (match) {
-					// hash encodes module tab
-					var state = this._parseModuleStateHash(match[1]);
-					var similarModuleTabs = array.filter(this._tabContainer.getChildren(), function(itab) {
-						return itab.moduleID === state.id && itab.moduleFlavor == state.flavor;
-					});
-
-					if (state.index < similarModuleTabs.length) {
-						this.focusTab(similarModuleTabs[state.index]);
-						similarModuleTabs[state.index].set('moduleState', state.moduleState);
-					} else {
-						this.openModule(state.id, state.flavor, {
-							moduleState: state.moduleState
-						});
-					}
-				}
-
-				match = hash.match(this._reCategory);
-				if (match) {
-					// hash encodes a module category view
-					this.switchToOverview();
-					var category = this.getCategory(match[1]);
-					if (category) {
-						this._updateQuery(category);
-					}
-				}
-
-				// save the called parameter
-				this._lastStateHash = hash;
+				this._handleHash(_hash);
 			}));
-
+			this._tabContainer.watch('selectedChildWidget', lang.hitch(this, function(name, oldModule, newModule) {
+				this._updateStateHash();
+			}));
 			if (_initialHash) {
-				tools.defer(lang.partial(hash, _initialHash, true), 0);
+				hash(_initialHash, true);
+			} else {
+				this._updateStateHash();
 			}
 		},
 
+		_handleHash: function(hash) {
+			hash = decodeURIComponent(hash);
+			if (this._getStateHash() === hash || this._lastStateHash === hash) {
+				// nothing to do
+				this._lastStateHash = hash;
+				return;
+			}
+			if (!hash) {
+				// UMC overview page
+				this.switchToOverview();
+				return;
+			}
+			var match = hash.match(this._reModule);
+			if (match) {
+				// hash encodes module tab
+				var state = this._parseModuleStateHash(match[1]);
+				var similarModuleTabs = array.filter(this._tabContainer.getChildren(), function(itab) {
+					return itab.moduleID === state.id && itab.moduleFlavor == state.flavor;
+				});
+
+				if (state.index < similarModuleTabs.length) {
+					this.focusTab(similarModuleTabs[state.index]);
+					similarModuleTabs[state.index].set('moduleState', state.moduleState);
+				} else {
+					this.openModule(state.id, state.flavor, {
+						moduleState: state.moduleState
+					});
+				}
+			}
+
+			match = hash.match(this._reCategory);
+			if (match) {
+				// hash encodes a module category view
+				this.switchToOverview();
+				var category = this.getCategory(match[1]);
+				if (category) {
+					this._updateQuery(category);
+				}
+			}
+
+			// save the called parameter
+			this._lastStateHash = hash;
+		},
+
 		_setupOverviewPage: function() {
+			if (tools.status('singleModule')) {
+				return;
+			}
+
 			this._grid = new _OverviewPane({
 				'class': 'umcOverviewPane',
 				categories: this.getCategories(),
@@ -1618,6 +1598,9 @@ define([
 
 			// update the hash
 			this._updateStateHash();
+			// TODO
+			// leaving the search (deleting all chars) reselects the previous selected category
+			// but this.category is null and so this._updateStateHash() does not set the current category in the hash
 		},
 
 		_updateNumOfTabs: function(offset) {

@@ -70,6 +70,7 @@ define([
 		centerAlertDialog: function() {}
 	};
 
+
 	tools.loadLicenseDataDeferred = new Deferred();
 	tools.browserSupportsIntlCollator = typeof(Intl) === 'object' && Intl.hasOwnProperty('Collator') && typeof(Intl.Collator) === 'function';
 
@@ -104,7 +105,6 @@ define([
 			username: null,
 			hostname: '',
 			domainname: '',
-			overview: true,
 			setupGui: false,
 			loggingIn: false,
 			loggedIn: false,
@@ -114,6 +114,7 @@ define([
 			// it will be replaced by the ucr variable 'umc/http/session/timeout' onLogin
 			sessionTimeout: 300,
 			sessionLastRequest: new Date(0),
+			singleModule: false,
 			autoStartModule: null,
 			autoStartFlavor: null,
 			numOfTabs: 0
