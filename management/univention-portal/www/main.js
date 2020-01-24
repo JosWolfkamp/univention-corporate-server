@@ -829,11 +829,10 @@ define([
 			this._selectedIframe = null;
 		},
 
-		__createIframe: function(logoUrl, url) {
+		__createIframe: function(id, logoUrl, url) {
 			var iframeWrapper = put('div.iframeWrapper');
 			var iframeStatus = put('span.iframeStatus.loadingSpinner.loadingSpinner--visible');
 			var iframe = put('iframe[src=$]', url);
-			// var tab = put('div.sidebar__tab div.sidebar__tab__icon.$ <', portalTools.getIconClass(logoUrl));
 			var tab = put('div.sidebar__tab');
 			var tabCloseCover = put('div.sidebar__tab__closeCover');
 			var tabClose = put('div.sidebar__tab__close div.umcCrossIconWhite <');
@@ -851,6 +850,7 @@ define([
 				put(iframeStatus, '!dijitDisplayNone!loadingSpinner!loadingSpinner--visible');
 			}, 4000);
 			iframe.addEventListener('load', lang.hitch(this, function() {
+				console.log('events: iframe load');
 				clearTimeout(maybeLoadFailed);
 				// TODO maybe the check for contentDocument is not reliable. When using saml login contentDocument is null
 				if (iframe.contentDocument) {
@@ -860,15 +860,109 @@ define([
 					put(iframeStatus, '!dijitDisplayNone!loadingSpinner!loadingSpinner--visible');
 				}
 				if (iframe.contentWindow) {
-					iframe.contentWindow.onbeforeunload = lang.hitch(this, function() {
-						iframeStatus.innerHTML = '';
-						put(iframeStatus, '!dijitDisplayNone.loadingSpinner.loadingSpinner--visible');
-					});
+					// var pathname = lang.getObject('contentWindow.location.pathname', false, iframe);
+					// if (pathname === '/univention/portal' || pathname === '/univention/portal/') {
+						// console.log('portal login. closing');
+						// this._removeIframe(id);
+					// }
+					
+					// iframe.contentWindow.onbeforeunload = lang.hitch(this, function() {
+						// iframeStatus.innerHTML = '';
+						// put(iframeStatus, '!dijitDisplayNone.loadingSpinner.loadingSpinner--visible');
+					// });
+					iframe.contentWindow.addEventListener('afterprint', lang.hitch(this, function(evt) {
+						console.log('events: window beforeprint');
+					}));
+					iframe.contentWindow.addEventListener('beforeprint', lang.hitch(this, function(evt) {
+						console.log('events: window beforeprint');
+					}));
+					iframe.contentWindow.addEventListener('beforeunload', lang.hitch(this, function(evt) {
+						console.log('events: window beforeunload');
+					}));
+					iframe.contentWindow.addEventListener('error', lang.hitch(this, function() {
+						console.log('events: window error');
+					}));
+					iframe.contentWindow.addEventListener('hashchange', lang.hitch(this, function(evt) {
+						console.log('events: window hashchange');
+					}));
+					iframe.contentWindow.addEventListener('hashchange', lang.hitch(this, function(evt) {
+						console.log('events: window hashchange');
+					}));
+					iframe.contentWindow.addEventListener('message', lang.hitch(this, function(evt) {
+						console.log('events: window message');
+					}));
+					iframe.contentWindow.addEventListener('offline', lang.hitch(this, function(evt) {
+						console.log('events: window offline');
+					}));
+					iframe.contentWindow.addEventListener('online', lang.hitch(this, function(evt) {
+						console.log('events: window online');
+					}));
+					iframe.contentWindow.addEventListener('pagehide', lang.hitch(this, function(evt) {
+						console.log('events: window pagehide');
+					}));
+					iframe.contentWindow.addEventListener('pageshow', lang.hitch(this, function(evt) {
+						console.log('events: window pageshow');
+					}));
+					iframe.contentWindow.addEventListener('popstate', lang.hitch(this, function(evt) {
+						console.log('events: window popstate');
+					}));
+					iframe.contentWindow.addEventListener('resize', lang.hitch(this, function(evt) {
+						console.log('events: window resize');
+					}));
+					iframe.contentWindow.addEventListener('storage', lang.hitch(this, function(evt) {
+						console.log('events: window storage');
+					}));
+					iframe.contentWindow.addEventListener('unload', lang.hitch(this, function(evt) {
+						console.log('events: window unload');
+					}));
 				}
 			}));
+			iframe.addEventListener('afterprint', lang.hitch(this, function(evt) {
+				console.log('events: iframe beforeprint');
+			}));
+			iframe.addEventListener('beforeprint', lang.hitch(this, function(evt) {
+				console.log('events: iframe beforeprint');
+			}));
+			iframe.addEventListener('beforeunload', lang.hitch(this, function(evt) {
+				console.log('events: iframe beforeunload');
+			}));
 			iframe.addEventListener('error', lang.hitch(this, function() {
+				console.log('events: ifram error');
 				iframeStatus.innerHTML = _('Content could not be loaded.');
 				put(iframeStatus, '!dijitDisplayNone!loadingSpinner!loadingSpinner--visible');
+			}));
+			iframe.addEventListener('hashchange', lang.hitch(this, function(evt) {
+				console.log('events: iframe hashchange');
+			}));
+			iframe.addEventListener('hashchange', lang.hitch(this, function(evt) {
+				console.log('events: iframe hashchange');
+			}));
+			iframe.addEventListener('message', lang.hitch(this, function(evt) {
+				console.log('events: iframe message');
+			}));
+			iframe.addEventListener('offline', lang.hitch(this, function(evt) {
+				console.log('events: iframe offline');
+			}));
+			iframe.addEventListener('online', lang.hitch(this, function(evt) {
+				console.log('events: iframe online');
+			}));
+			iframe.addEventListener('pagehide', lang.hitch(this, function(evt) {
+				console.log('events: iframe pagehide');
+			}));
+			iframe.addEventListener('pageshow', lang.hitch(this, function(evt) {
+				console.log('events: iframe pageshow');
+			}));
+			iframe.addEventListener('popstate', lang.hitch(this, function(evt) {
+				console.log('events: iframe popstate');
+			}));
+			iframe.addEventListener('resize', lang.hitch(this, function(evt) {
+				console.log('events: iframe resize');
+			}));
+			iframe.addEventListener('storage', lang.hitch(this, function(evt) {
+				console.log('events: iframe storage');
+			}));
+			iframe.addEventListener('unload', lang.hitch(this, function(evt) {
+				console.log('events: iframe unload');
 			}));
 			put(iframeWrapper, iframeStatus, '+', iframe);
 			return {
@@ -881,7 +975,7 @@ define([
 		},
 
 		_createIframe: function(id, logoUrl, url) {
-			var d = this.__createIframe(logoUrl, url);
+			var d = this.__createIframe(id, logoUrl, url);
 			on(d.tabSelect, 'click', lang.hitch(this, function() {
 				console.log('tab click');
 				this._selectIframe(id);
