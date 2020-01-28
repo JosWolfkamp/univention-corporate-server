@@ -860,12 +860,16 @@ define([
 					put(iframeStatus, '!dijitDisplayNone!loadingSpinner!loadingSpinner--visible');
 				}
 				if (iframe.contentWindow) {
-					// var pathname = lang.getObject('contentWindow.location.pathname', false, iframe);
-					// if (pathname === '/univention/portal' || pathname === '/univention/portal/') {
-						// console.log('portal login. closing');
-						// this._removeIframe(id);
-					// }
+					var pathname = lang.getObject('contentWindow.location.pathname', false, iframe);
+					if (pathname === '/univention/portal' || pathname === '/univention/portal/') {
+						console.log('iframe loaded /univention/portal - closing');
+						this._removeIframe(id);
+					}
 					
+					iframe.contentWindow.addEventListener('beforeunload', function() {
+						iframeStatus.innerHTML = '';
+						put(iframeStatus, '!dijitDisplayNone.loadingSpinner.loadingSpinner--visible');
+					});
 					// iframe.contentWindow.onbeforeunload = lang.hitch(this, function() {
 						// iframeStatus.innerHTML = '';
 						// put(iframeStatus, '!dijitDisplayNone.loadingSpinner.loadingSpinner--visible');
